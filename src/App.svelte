@@ -1,32 +1,29 @@
 <script>
   import Loading from "./other/Loading.svelte";
   import isMobile from "./util/isMobile";
-  import { route } from "./router";
+  import { appRoute, appLoading } from "./router";
   import Layout from "./other/Layout.svelte";
 
   import Login from "./pages/Login/Login.svelte";
   import Detector from "./pages/Detector/Detector.svelte";
 
-  let loading = true;
-  $: currentRoute = $route;
-
   window.onload = () => {
     setTimeout(() => {
-      loading = false;
+      appLoading.set(false);
     }, 500);
   };
 </script>
 
 <Layout>
-  {#if loading}
+  {#if $appLoading}
     <Loading />
   {/if}
 
-  {#if currentRoute === 'login'}
+  {#if $appRoute === 'login'}
     <Login />
   {/if}
 
-  {#if currentRoute === 'detector'}
+  {#if $appRoute === 'detector'}
     <Detector />
   {/if}
 </Layout>
