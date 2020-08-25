@@ -30,14 +30,12 @@
     stopAllTracks();
   }
 
-  $: if (permission) {
-    start();
-  }
-
   async function start() {
     await getPermission();
     getAvailableCameras().then(() => {
-      setCamera($availableCameras[0].deviceId);
+      if ($availableCameras) {
+        setCamera($availableCameras[0].deviceId);
+      }
     });
   }
 
@@ -48,9 +46,17 @@
 
   function stopAllTracks() {
     if ($currentStream) {
+
       $currentStream.getTracks().forEach((track) => {
         track.stop();
       });
+
+      /// @ts-ignore
+      video.srcObject.getTracks().forEach((track) => {
+        track.stop();
+      });
+      video.srcObject = null;
+      $currentStream = null;
     }
   }
 

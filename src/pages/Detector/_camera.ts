@@ -6,6 +6,7 @@ export const availableCameras = writable([]);
 export const currentStream = writable<MediaStream>(null);
 
 export function setCamera(id: string) {
+  console.log("set camera");
   let constraints;
 
   if (id === "") {
@@ -23,6 +24,7 @@ export function setCamera(id: string) {
   }
 
   currentCameraId.set(id);
+
   navigator.mediaDevices
     .getUserMedia(constraints)
     .then((stream) => {

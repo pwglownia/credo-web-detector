@@ -1,7 +1,7 @@
 <script lang="ts">
   import { analyze } from "./_analyze";
   import Select from "./Select/Select.svelte";
-  import { running, setCamera } from "./_camera";
+  import { currentStream, running, setCamera } from "./_camera";
   import { onMount } from "svelte";
 
   const config = {
@@ -10,6 +10,8 @@
     brightnessTreshold: 0, // 0 - 255
     pixelTreshold: 20, // 0 - 255
   };
+
+  $: console.log("stream:", $currentStream);
 
   let dialog;
   let select: boolean = false;
