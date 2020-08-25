@@ -3,7 +3,7 @@ import { writable } from "svelte/store";
 export const appRoute = writable<"login" | "detector">("detector");
 export const appLoading = writable<boolean>(true);
 
-export const detectorRoute = writable<"setup">("setup");
+export const detectorRoute = writable<"main">("main");
 
 appRoute.subscribe((route) => console.info("App route changed to: " + route));
 detectorRoute.subscribe((route) =>

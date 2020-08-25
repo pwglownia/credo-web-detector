@@ -1,7 +1,8 @@
 <script lang="ts">
   import { analyze } from "./_analyze";
-  import Select from "./_Select.svelte";
-  import { running } from "./_camera";
+  import Select from "./Select/Select.svelte";
+  import { running, setCamera } from "./_camera";
+  import { onMount } from "svelte";
 
   const config = {
     cropWidth: 60,
@@ -11,15 +12,19 @@
   };
 
   let dialog;
+  let select: boolean = false;
 </script>
 
 <section>
 
   <sl-dialog
+    on:slShow={() => (select = true)}
+    on:slHide={() => (select = false)}
     bind:this={dialog}
-    noHeader="true"
-    style="height: 100vh; width: 100vw">
-    <Select />
+    noHeader="true">
+    {#if select}
+      <Select />
+    {/if}
   </sl-dialog>
 
   {#if $running === false}
