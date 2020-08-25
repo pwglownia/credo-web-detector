@@ -22,7 +22,7 @@ export function setCamera(id: string) {
       audio: false,
     };
   }
-
+  console.log("ID", id)
   currentCameraId.set(id);
 
   navigator.mediaDevices
