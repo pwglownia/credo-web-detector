@@ -1,25 +1,40 @@
-import { writable } from "svelte/store"
+import { writable } from "svelte/store";
 
-export const cameraId = writable(null)
+export const cameraId = writable(null);
 export interface CameraDevice {
   id: string;
   name: string;
 }
 export class CameraError {
   constructor(readonly errorName: string) {}
-  isNotAllowedError(){
-    return this.errorName === CameraError.NotAllowedError
+  isNotAllowedError() {
+    return this.errorName === CameraError.NotAllowedError;
   }
-  isNotFoundError(){
-    return this.errorName === CameraError.NotFoundError
+  isNotFoundError() {
+    return this.errorName === CameraError.NotFoundError;
   }
-  static NotAllowedError = "NotAllowedError"
-  static NotFoundError = "NotFoundError"
+  static NotAllowedError = "NotAllowedError";
+  static NotFoundError = "NotFoundError";
 }
 
+const CAMERA_KEY = "device_id";
+
 export class Camera {
+  private static INSTANCE: Camera = null;
+  static getInstance() {
+    if (!Camera.INSTANCE) Camera.INSTANCE = new Camera();
+    return this.INSTANCE;
+  }
+
   private stream: MediaStream = null;
-  private _deviceId: string = null;
+
+  private _deviceId: string = localStorage.getItem(CAMERA_KEY);
+
+  private constructor() {
+    if(this._deviceId){
+      cameraId.set(this._deviceId)
+    }
+  }
 
   get deviceId() {
     return this._deviceId;
@@ -37,12 +52,14 @@ export class Camera {
 
   async getDefaultStream() {
     this.closeStream();
-    const result = await this.tryGetDefaultStream();
+    let result;
+    if (!this._deviceId) result = await this.tryGetDefaultStream();
+    else result = await this.tryGetStreamById(this._deviceId);
     if (result instanceof CameraError) {
       this.stream = null;
       return result;
     }
-    this.stream = result
+    this.stream = result;
     this._deviceId = this.stream?.getVideoTracks()[0].getSettings().deviceId;
     return this.stream;
   }
@@ -71,7 +88,7 @@ export class Camera {
   private async tryGetStreamById(id: string) {
     try {
       return await navigator.mediaDevices.getUserMedia({
-        video: { deviceId: {exact: id} },
+        video: { deviceId: { exact: id } },
         audio: false,
       });
     } catch (e) {
@@ -87,7 +104,12 @@ export class Camera {
     this.stream = null;
   }
 
-  saveCameraId(){
-    cameraId.set(this._deviceId)
+  saveCameraId() {
+    cameraId.set(this._deviceId);
+    localStorage.setItem(CAMERA_KEY, this._deviceId);
+  }
+
+  getFacingMode() {
+    return this.stream?.getVideoTracks()[0].getSettings().facingMode;
   }
 }

@@ -2,8 +2,9 @@
   import { analyze } from "./_analyze";
   import { currentStream, running, setCamera } from "./_camera";
   import { onMount } from "svelte";
-import NewSelect from "./Select/newSelect.svelte";
-import Select from "./Select/Select.svelte";
+  import NewSelect from "./Select/newSelect.svelte";
+  import Select from "./Select/Select.svelte";
+  import { Camera, cameraId } from "../../camera/camera";
 
   const config = {
     cropWidth: 60,
@@ -11,9 +12,19 @@ import Select from "./Select/Select.svelte";
     brightnessTreshold: 0, // 0 - 255
     pixelTreshold: 20, // 0 - 255
   };
+  $: canNotStart = true;
+  $: if ($cameraId) {
+    canNotStart = true;
+  }
+
+  const camera = Camera.getInstance();
 
   let dialog;
   let select: boolean = false;
+
+  onMount(() => {
+    if (camera.deviceId) canNotStart = true;
+  });
 </script>
 
 <section>
@@ -24,16 +35,16 @@ import Select from "./Select/Select.svelte";
     bind:this={dialog}
     noHeader="true">
     {#if select}
-      <NewSelect />
+      <NewSelect
+        on:close={() => {
+          dialog.hide();
+        }} />
     {/if}
   </sl-dialog>
 
-  {#if $running === false}
-    <button on:click={() => dialog.show()}>Start</button>
-  {/if}
-
-  {#if $running === true}
-    <button on:click={() => console.log('stop')}>Stop</button>
-  {/if}
+  <sl-button on:click={() => dialog.show()} type="info">Settings</sl-button>
+  <sl-button on:click={() => {}} type="primary" disabled={canNotStart}>
+    Start
+  </sl-button>
 
 </section>

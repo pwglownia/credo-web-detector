@@ -1,14 +1,25 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  import type { identity } from "svelte/internal";
+  import { createEventDispatcher, identity } from "svelte/internal";
   import { Camera, CameraError } from "../../../camera/camera";
-  
-  const camera = new Camera();
+
+  const camera = Camera.getInstance();
+
+  const dispatch = createEventDispatcher()
 
   $: cameras = [];
   $: hasNotPermission = false;
   $: hasNotCamera = false;
-  $: canShowSelect = true;
+  $: canShowSelect = false;
+  let stream = null
+
+  $: if(stream && video){
+    video.srcObject = stream
+    facing = camera.getFacingMode()
+  }
+  
+  let facing: string;
+  let isChanging = false;
 
   let video: HTMLVideoElement;
 
@@ -32,57 +43,71 @@
   async function handleCameraResult(result: MediaStream | CameraError) {
     if (result instanceof CameraError) {
       errorCase(result);
-      return;
     } else {
+      canShowSelect = true
       hasNotCamera = false;
       hasNotPermission = false;
-      video.srcObject = result;
+      stream = result
     }
   }
+  
+
   function errorCase(cameraError: CameraError) {
-    console.log(cameraError);
     if (cameraError.isNotAllowedError()) {
-      canShowSelect = false
+      canShowSelect = false;
       hasNotPermission = true;
       hasNotCamera = false;
-    }
-    if(cameraError.isNotFoundError()) {
-      canShowSelect = false
+    } else if (cameraError.isNotFoundError()) {
+      canShowSelect = false;
       hasNotPermission = false;
       hasNotCamera = true;
-    }
-    else {
-      canShowSelect = false
+    } else {
+      canShowSelect = false;
       hasNotPermission = false;
       hasNotCamera = false;
-      alert("Error")
+      alert("Unknow error");
     }
   }
   async function changeCamera(id: string) {
-    if (id === camera.deviceId) return;
+    isChanging = true;
+    if (id === camera.deviceId) {
+      isChanging = false;
+      return;
+    }
     video.srcObject = null;
     const result = await camera.getStreamById(id);
     await handleCameraResult(result);
+    isChanging = false;
   }
 
   function accept() {
     camera.saveCameraId();
+    dispatch("close")
   }
+
+  navigator.permissions.query({ name: "camera" }).then((permission) => {
+    permission.onchange = function () {
+      if (this.state !== "granted") location.reload();
+    };
+  });
 </script>
 
 <style>
   .container {
     display: flex;
     flex-direction: column;
+    justify-content: center;
   }
   video {
     height: 200px;
-    transform: rotateY(180deg);
+    width: 100%;
+    object-fit: contain;
+  }
+
+  .inverted {
+  transform: rotateY(180deg);
     -webkit-transform: rotateY(180deg);
     -moz-transform: rotateY(180deg);
-  }
-  .radio-btn {
-    padding: 16px;
   }
 </style>
 
@@ -96,20 +121,17 @@
     <h2>No camera</h2>
   {/if}
   {#if canShowSelect}
-    <section class="video">
-      <video bind:this={video} autoplay />
-    </section>
+    <video  class={facing === 'user' ? 'inverted' : ''}  bind:this={video} autoplay />
+    
     {#each cameras as { id, name }}
       <sl-radio
-        class="radio-btn"
-        value={id}
+        disabled={isChanging}
         name="camera"
-        on:slChange={(ev) => changeCamera(ev.srcElement.value)}
+        on:slChange={() => changeCamera(id)}
         checked={id === camera.deviceId}>
         {name}
       </sl-radio>
     {/each}
-    <sl-button on:click={accept()}>Accept</sl-button>
+    <sl-button on:click={accept}>Accept</sl-button>
   {/if}
-
 </div>
