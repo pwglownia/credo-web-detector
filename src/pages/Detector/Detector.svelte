@@ -4,8 +4,10 @@
   import { onDestroy, onMount } from "svelte";
   import NewSelect from "./Select/newSelect.svelte";
   import Select from "./Select/Select.svelte";
-  import { Camera, cameraId } from "../../camera/camera";
+  import { Camera, CameraError, cameraId } from "../../camera/camera";
   import { VideoSettings } from "../../util/video.settings";
+  import { CameraAnalizator } from "../../camera/camera.analizator";
+
 
   const config = {
     cropWidth: 60,
@@ -15,7 +17,7 @@
   };
 
   const camera = Camera.getInstance();
-
+  let analizer : CameraAnalizator = null;
   $: canShowVideo = VideoSettings.getCanShow();
   $: isDetectorRunning = false;
   let video;
@@ -26,15 +28,46 @@
   onMount(() => {});
   onDestroy(() => {});
   function startStopBtn() {
+    console.log('onStartStop')
     if (!$cameraId) {
       dialog.show();
       return;
     }
-    if (isDetectorRunning) stopDetector();
-    else startDetector();
+    if (isDetectorRunning){
+      stopDetector();
+    }
+    else {
+      startDetector()
+    }
   }
-  function startDetector() {}
-  function stopDetector() {}
+  async function startDetector() {
+    console.log("startDetector()")
+    if(!analizer)
+      {
+        console.log("Init analizer")
+        console.log($cameraId)
+        const result = await camera.getStreamById($cameraId)
+        if(result instanceof CameraError)
+        return
+        analizer = new CameraAnalizator(result)
+      }
+      isDetectorRunning = true;
+      analizer.start((result)=>{
+        console.log(result)
+      })
+  }
+
+  function stopDetector() {
+    console.log("stopDetecotr()")
+    isDetectorRunning = false
+     analizer.stop()
+    camera.closeStream()
+  }
+  function stopVideo(){
+    analizer.stop()
+    analizer.clear()
+    camera.closeStream()
+  }
   function onSwitchChange() {
     canShowVideo = !canShowVideo;
     VideoSettings.saveCanShow(canShowVideo);

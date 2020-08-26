@@ -1,22 +1,23 @@
-import type { DetectionAlgorithResult } from "./detection.algorithm";
+import { DetectionAlgorithResult, process } from "./detection.algorithm";
 
 export class CameraAnalizator {
   private imageCapture: ImageCapture;
   private isRunning = false;
-  private webWorker = new Worker("camera.webworker.ts");
+  // private webWorker = new Worker("camera.webworker.ts");
+  private callBack = null;
 
   constructor(private stream: MediaStream) {
-    const videoTrack = stream.getVideoTracks[0];
+    console.log(stream);
+    const videoTrack = stream.getVideoTracks()[0];
+    console.log("VideoTrack", videoTrack);
     this.imageCapture = new ImageCapture(videoTrack);
   }
 
   start(callBack: (DetectionAlgorithResult) => void) {
     if (this.isRunning) throw Error("Analizator is running");
     this.isRunning = true;
+    this.callBack = callBack
     this.grabFrames();
-    this.webWorker.onmessage = ({ data }) => {
-      callBack(data);
-    };
   }
 
   private grabFrames() {
@@ -24,19 +25,21 @@ export class CameraAnalizator {
   }
 
   private grabFrameCallback(bitmap: ImageBitmap) {
-    this.webWorker.postMessage(bitmap);
     if (this.isRunning) {
       this.grabFrames();
     }
   }
+  private processImg(bitmap:ImageBitmap){
+   
+  }
 
-  private analizeBitmap(bitmap: ImageBitmap) {}
   stop() {
     this.isRunning = false;
   }
 
   clear() {
-    this.webWorker.terminate();
+    this.isRunning = false;
+    //this.webWorker.terminate();
     this.stream = null;
   }
 }
