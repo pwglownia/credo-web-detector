@@ -6,8 +6,18 @@
   import Select from "./Select/Select.svelte";
   import { Camera, CameraError, cameraId } from "../../camera/camera";
   import { VideoSettings } from "../../util/video.settings";
-  import { CameraAnalizator } from "../../camera/camera.analizator";
+import { CameraAnalyser } from "../../camera/camera.analyser";
 
+
+  const requestWakeLock = async()=>{
+    try{
+      // @ts-ignore 
+      const wakeLock = await navigator.wakeLock.request('screen');
+      console.log(wakeLock)
+    }catch(e){
+      console.error(e)
+    }   
+  }
 
   const config = {
     cropWidth: 60,
@@ -17,7 +27,8 @@
   };
 
   const camera = Camera.getInstance();
-  let analizer : CameraAnalizator = null;
+  const analyser = new CameraAnalyser()
+
   $: canShowVideo = VideoSettings.getCanShow();
   $: isDetectorRunning = false;
   let video;
@@ -25,7 +36,9 @@
   let dialog;
   let select: boolean = false;
 
-  onMount(() => {});
+  onMount(() => {
+    requestWakeLock()
+  });
   onDestroy(() => {});
   function startStopBtn() {
     console.log('onStartStop')
@@ -42,30 +55,24 @@
   }
   async function startDetector() {
     console.log("startDetector()")
-    if(!analizer)
-      {
-        console.log("Init analizer")
-        console.log($cameraId)
-        const result = await camera.getStreamById($cameraId)
-        if(result instanceof CameraError)
+    const result = await camera.getStreamById($cameraId)
+     if(result instanceof CameraError)
         return
-        analizer = new CameraAnalizator(result)
-      }
       isDetectorRunning = true;
-      analizer.start((result)=>{
+      analyser.start((result)=>{
         console.log(result)
-      })
+      }, result.getVideoTracks()[0])
   }
 
   function stopDetector() {
     console.log("stopDetecotr()")
     isDetectorRunning = false
-     analizer.stop()
+     analyser.stop()
     camera.closeStream()
   }
   function stopVideo(){
-    analizer.stop()
-    analizer.clear()
+    analyser.stop()
+    analyser.clear()
     camera.closeStream()
   }
   function onSwitchChange() {

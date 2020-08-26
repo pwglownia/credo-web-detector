@@ -25,6 +25,7 @@ export function process(
   if (brightnessTreshold > brightness) {
     if (maxPixelValue > pixelTreshold) {
       particleImg = cropImage(imageData, particleImg);
+      console.log(maxPixelValue)
       return {
         brightness,
         particleImg,
@@ -40,7 +41,7 @@ function setBrightnessAndMaxValue(
   imgLenght: number
 ) {
   let sum = 0;
-
+  maxPixelValue = 0;
   for (let i = 0; i < imgLenght; i += 4) {
     let valueOfCurrentPixel = imgArray[i] + imgArray[i + 1] + imgArray[i + 2];
     sum += valueOfCurrentPixel;
