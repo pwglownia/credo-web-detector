@@ -5,6 +5,7 @@ export interface CameraDevice {
   id: string;
   name: string;
 }
+
 export class CameraError {
   constructor(readonly errorName: string) {}
   isNotAllowedError() {

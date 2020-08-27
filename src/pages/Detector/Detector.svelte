@@ -6,7 +6,9 @@
   import Select from "./Select/Select.svelte";
   import { Camera, CameraError, cameraId } from "../../camera/camera";
   import { VideoSettings } from "../../util/video.settings";
-import { CameraAnalyser } from "../../camera/camera.analyser";
+  import { CameraAnalyzer } from "../../camera/camera.analyzer";
+
+  
 
 
   const requestWakeLock = async()=>{
@@ -24,10 +26,10 @@ import { CameraAnalyser } from "../../camera/camera.analyser";
     cropHeight: 60,
     brightnessTreshold: 0, // 0 - 255
     pixelTreshold: 20, // 0 - 255
-  };
+  };  
 
   const camera = Camera.getInstance();
-  const analyser = new CameraAnalyser()
+  const analyzer = new CameraAnalyzer()
 
   $: canShowVideo = VideoSettings.getCanShow();
   $: isDetectorRunning = false;
@@ -59,7 +61,7 @@ import { CameraAnalyser } from "../../camera/camera.analyser";
      if(result instanceof CameraError)
         return
       isDetectorRunning = true;
-      analyser.start((result)=>{
+      analyzer.start((result)=>{
         console.log(result)
       }, result.getVideoTracks()[0])
   }
@@ -67,12 +69,12 @@ import { CameraAnalyser } from "../../camera/camera.analyser";
   function stopDetector() {
     console.log("stopDetecotr()")
     isDetectorRunning = false
-     analyser.stop()
+     analyzer.stop()
     camera.closeStream()
   }
   function stopVideo(){
-    analyser.stop()
-    analyser.clear()
+    analyzer.stop()
+    analyzer.clear()
     camera.closeStream()
   }
   function onSwitchChange() {
