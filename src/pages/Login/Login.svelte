@@ -1,5 +1,5 @@
 <script>
-  import { appRoute } from "../../router";
+  import { appRoute } from "../../store";
 </script>
 
 <p>

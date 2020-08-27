@@ -1,7 +1,7 @@
 <script>
   import Loading from "./other/Loading.svelte";
   import isMobile from "./util/isMobile";
-  import { appRoute, appLoading } from "./router";
+  import { appRoute, appLoading } from "./store";
   import Layout from "./other/Layout.svelte";
 
   import Login from "./pages/Login/Login.svelte";

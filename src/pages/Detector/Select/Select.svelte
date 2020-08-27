@@ -1,116 +1,201 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  import Login from "../../Login/Login.svelte";
-  import {
-    availableCameras,
-    currentCameraId,
-    currentStream,
-    getAvailableCameras,
-    setCamera,
-  } from "../_camera";
+  import { createEventDispatcher, identity } from "svelte/internal";
+  import { Camera, CameraError } from "../../../camera/camera";
   import NoCamera from "./_NoCamera.svelte";
   import NoPermission from "./_NoPermission.svelte";
+  import { fade } from "svelte/transition";
+
+  const camera = Camera.getInstance();
+
+  const dispatch = createEventDispatcher();
+
+  let stream = null;
+  let cameras = [];
+
+  const ui = {
+    loading: true,
+    hasPermission: null,
+    hasCamera: null,
+    hasProblem: null,
+  };
+
+  let facing: string;
+
+  $: if (stream && video) {
+    video.srcObject = stream;
+    facing = camera.getFacingMode();
+  }
+
+  let disabled = false;
 
   let video: HTMLVideoElement;
-  let permission: boolean;
-
-  async function getPermission() {
-    const permissionObj = await navigator.permissions.query({ name: "camera" });
-    permission = permissionObj.state === "granted";
-    permissionObj.onchange = function () {
-      permission = this.state === "granted";
-    };
-  }
-
-  $: if (video) {
-    video.srcObject = $currentStream;
-  }
-
-  $: if (!permission) {
-    stopAllTracks();
-  }
-
-  async function start() {
-    await getPermission();
-    getAvailableCameras().then(() => {
-      if ($availableCameras) {
-        setCamera($availableCameras[0].deviceId);
-      }
-    });
-  }
-
-  function change(id) {
-    stopAllTracks();
-    setCamera(id);
-  }
-
-  function stopAllTracks() {
-    if ($currentStream) {
-
-      $currentStream.getTracks().forEach((track) => {
-        track.stop();
-      });
-
-      /// @ts-ignore
-      video.srcObject.getTracks().forEach((track) => {
-        track.stop();
-      });
-      video.srcObject = null;
-      $currentStream = null;
-    }
-  }
 
   onMount(() => {
-    start();
+    initCamera();
   });
 
   onDestroy(() => {
-    stopAllTracks();
+    // video.srcObject = null;
+    camera.closeStream();
+  });
+
+  async function initCamera() {
+    const result = await camera.getDefaultStream();
+    await handleCameraResult(result);
+    cameras = await camera.getAvaiableCameras();
+  }
+
+  async function handleCameraResult(result: MediaStream | CameraError) {
+    if (result instanceof CameraError) {
+      errorCase(result);
+    } else {
+      ui.hasPermission = true;
+      ui.hasCamera = true;
+      ui.hasProblem = false;
+
+      stream = result;
+    }
+    ui.loading = false;
+  }
+
+  function errorCase(cameraError: CameraError) {
+    if (cameraError.isNotAllowedError()) {
+      ui.hasPermission = false;
+    } else if (cameraError.isNotFoundError()) {
+      ui.hasCamera = false;
+    } else {
+      ui.hasProblem = true;
+      alert(cameraError); // TODO: show more love to user, and print it more gracefully
+    }
+  }
+  async function changeCamera(id: string) {
+    ui.loading = true;
+    disabled = true;
+    if (id === camera.deviceId) {
+      disabled = false;
+      return;
+    }
+    video.srcObject = null;
+    const result = await camera.getStreamById(id);
+    await handleCameraResult(result);
+    disabled = false;
+  }
+
+  function accept() {
+    camera.saveCameraId();
+    dispatch("close");
+  }
+
+  function cancel() {
+    dispatch("close");
+  }
+
+  navigator.permissions.query({ name: "camera" }).then((permission) => {
+    permission.onchange = function () {
+      if (this.state !== "granted") location.reload();
+    };
   });
 </script>
 
 <style>
-  .container {
+  .loading {
     display: flex;
     flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-height: 40vh;
   }
+
+  .container {
+    padding: var(--spaceLg);
+  }
+
   video {
     height: 200px;
+    width: 100%;
+    object-fit: contain;
+    background: #000;
+    border-top-right-radius: var(--sl-border-radius-medium);
+    border-top-left-radius: var(--sl-border-radius-medium);
+  }
+
+  .controls {
+    padding: var(--spaceMd);
+  }
+
+  .info > p {
+    margin: 0;
+  }
+
+  sl-radio {
+    padding: var(--spaceSm);
+  }
+
+  .buttons {
+    width: 100%;
+    justify-content: flex-end;
+    box-sizing: border-box;
+  }
+
+  .inverted {
     transform: rotateY(180deg);
-    -webkit-transform: rotateY(180deg); /* Safari and Chrome */
-    -moz-transform: rotateY(180deg); /* Firefox */
+    -webkit-transform: rotateY(180deg);
+    -moz-transform: rotateY(180deg);
   }
 </style>
 
-<div class="container">
+{#if ui.loading}
+  <div class="loading">
+    <p>Loading available cameras...</p>
+    <br />
+    <sl-spinner />
+  </div>
+{/if}
 
-  {#if permission && $availableCameras.length === 0}
-    <NoCamera />
-  {/if}
+{#if ui.hasPermission === false}
+  <NoPermission />
+{/if}
 
-  {#if permission && $availableCameras.length > 0}
-    <section class="video">
-      <!-- svelte-ignore a11y-media-has-caption -->
-      <video bind:this={video} autoplay />
-    </section>
-    <section class="controls">
+{#if ui.hasCamera === false}
+  <NoCamera />
+{/if}
 
-      {#each $availableCameras as { deviceId, label }, i}
-        <sl-radio
-          on:slChange={(ev) => {
-            change(ev.srcElement.value);
-          }}
-          checked={deviceId === $currentCameraId}
-          value={deviceId}
-          name="option">
-          {label}
-        </sl-radio>
-      {/each}
+{#if ui.hasProblem === true}some problem{/if}
 
-      <sl-button>Accept</sl-button>
-    </section>
-  {:else}
-    <NoPermission />
-  {/if}
+{#if ui.hasPermission === true && ui.hasCamera === true && ui.hasProblem === false}
+  <!-- svelte-ignore a11y-media-has-caption -->
+  <div transition:fade>
+    <video
+      class={facing === 'user' ? 'inverted' : ''}
+      bind:this={video}
+      autoplay />
 
-</div>
+    <div class="container">
+      <div class="info">
+        <p>
+          Select the camera that is
+          <a href="/">best suited</a>
+          for detections
+        </p>
+      </div>
+
+      <div class="controls">
+        {#each cameras as { id, name }}
+          <sl-radio
+            {disabled}
+            name="camera"
+            on:slChange={() => changeCamera(id)}
+            checked={id === camera.deviceId}>
+            {name}
+          </sl-radio>
+        {/each}
+      </div>
+      <div class="buttons">
+        <sl-button on:click={() => cancel()}>Cancel</sl-button>
+        <sl-button type="primary" on:click={() => accept()}>Choose</sl-button>
+      </div>
+    </div>
+  </div>
+{/if}

@@ -2,10 +2,9 @@
   import { analyze } from "./_analyze";
   import { currentStream, running, setCamera } from "./_camera";
   import { onDestroy, onMount } from "svelte";
-  import NewSelect from "./Select/newSelect.svelte";
+  import NewSelect from "./Select/Select.svelte";
   import Select from "./Select/Select.svelte";
   import { Camera, cameraId } from "../../camera/camera";
-  import { VideoSettings } from "../../util/video.settings";
 
   const config = {
     cropWidth: 60,
@@ -16,82 +15,31 @@
 
   const camera = Camera.getInstance();
 
-  $: canShowVideo = VideoSettings.getCanShow();
-  $: isDetectorRunning = false;
+  //debug
+  $: console.log($cameraId);
+
+  //end debug
   let video;
 
   let dialog;
   let select: boolean = false;
 
-  onMount(() => {});
-  onDestroy(() => {});
-  function startStopBtn() {
-    if (!$cameraId) {
-      dialog.show();
-      return;
-    }
-    if (isDetectorRunning) stopDetector();
-    else startDetector();
-  }
-  function startDetector() {}
-  function stopDetector() {}
-  function onSwitchChange() {
-    canShowVideo = !canShowVideo;
-    VideoSettings.saveCanShow(canShowVideo);
-  }
+  onMount(() => {
+    dialog.show();
+  });
 </script>
 
 <style>
-  section {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+  sl-dialog::part(body) {
+    padding: 0;
   }
-  header {
-    height: 75px;
-    width: 100%;
-    background-color: #1a1a1a;
-    color: white;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 16px;
-  }
-  nav {
-    width: 50%;
-    display: flex;
-    justify-content: space-between;
-    flex-direction: row;
-    align-items: center;
-  }
-  sl-icon-button::part(base) {
-    color: white;
-    font-size: 24px;
-  }
-  sl-switch::part(label) {
-    color: white;
-  }
-  video {
-    height: 200px;
-    width: 100%;
-    object-fit: contain;
+
+  sl-dialog::part(header) {
+    display: none;
   }
 </style>
 
-<header>
-  <h2>Credo</h2>
-  <nav>
-    <sl-button type="primary">Hits</sl-button>
-    <sl-switch on:slChange={onSwitchChange} checked={canShowVideo}>
-      video
-    </sl-switch>
-    <sl-tooltip content="Settings">
-      <sl-icon-button name="gear" />
-    </sl-tooltip>
-  </nav>
-</header>
+<!-- svelte-ignore a11y-media-has-caption -->
 <section>
 
   <sl-dialog
@@ -106,13 +54,13 @@
         }} />
     {/if}
   </sl-dialog>
-  <!-- svelte-ignore a11y-media-has-caption -->
-  {#if canShowVideo}
+  {#if $cameraId}
     <video bind:this={video} />
+    jest kamera
+    <sl-button on:click={() => dialog.show()}>switch camera</sl-button>
+  {:else}
+    <sl-button on:click={() => dialog.show()} type="info">
+      Choose Camera
+    </sl-button>
   {/if}
-
-  <sl-button on:click={startStopBtn} type="info">
-    {#if isDetectorRunning}Stop{:else}Start{/if}
-  </sl-button>
-
 </section>

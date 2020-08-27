@@ -8,3 +8,15 @@ body {
   margin: 0;
   font-family: var(--fontFamily);
 }
+
+video {
+  background: #000;
+}
+
+div {
+  box-sizing: border-box;
+}
+
+p {
+  padding: 0;
+}
