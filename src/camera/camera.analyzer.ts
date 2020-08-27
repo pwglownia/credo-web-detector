@@ -1,4 +1,4 @@
-import { DetectionAlgorithResult, process } from "./detection.algorithm";
+import { DetectionAlgorithResult as DetectionResult, process } from "./detection.algorithm";
 
 export interface WorkerConfig {
   cropWidth: number;
@@ -17,7 +17,7 @@ const config: WorkerConfig = {
 let canvas: OffscreenCanvas,
   canvasCtx: OffscreenCanvasRenderingContext2D,
   particleImg: ImageData,
-  result: DetectionAlgorithResult;
+  result: DetectionResult;
 
 export class CameraAnalyzer {
   private imageCapture: ImageCapture = null;
@@ -25,18 +25,24 @@ export class CameraAnalyzer {
   private callBack = null;
 
   start(
-    callBack: (DetectionAlgorithResult) => void,
+    callBack: (result:DetectionResult) => void,
     videoTrack: MediaStreamTrack
   ) {
-    if (this.isRunning) throw Error("Analizator is running");
+    if (this.isRunning) throw Error("Analyzer is running");
+    this.imageCapture = new ImageCapture(videoTrack);
     this.isRunning = true;
     this.callBack = callBack;
-    this.imageCapture = new ImageCapture(videoTrack);
+    console.log(this.imageCapture);
     this.grabFrames();
   }
 
   private grabFrames() {
-    this.imageCapture.grabFrame().then(this.grabFrameCallback);
+    this.imageCapture
+      .grabFrame()
+      .then(this.grabFrameCallback)
+      .catch((e) => {
+        console.log("error !!!", e);
+      });
   }
 
   private grabFrameCallback = (bitmap: ImageBitmap) => {
@@ -78,10 +84,6 @@ export class CameraAnalyzer {
   }
 
   stop() {
-    this.isRunning = false;
-  }
-
-  clear() {
     this.isRunning = false;
   }
 }

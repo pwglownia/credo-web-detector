@@ -1,84 +1,71 @@
 <script lang="ts">
-  import { analyze } from "./_analyze";
-  import { currentStream, running, setCamera } from "./_camera";
   import { onDestroy, onMount } from "svelte";
   import Select from "./Select/Select.svelte";
-  import { Camera, CameraError, cameraId } from "../../camera/camera";
-  import { VideoSettings } from "../../util/video.settings";
+  import { CameraError } from "../../camera/camera";
   import { CameraAnalyzer } from "../../camera/camera.analyzer";
+  import { CameraObject, cameraStore } from "../../camera/camera.store";
+  import { WakeLocker } from "../../util/wake-locker";
 
-  
-
-
-  const requestWakeLock = async()=>{
-    try{
-      // @ts-ignore 
-      const wakeLock = await navigator.wakeLock.request('screen');
-      console.log(wakeLock)
-    }catch(e){
-      console.error(e)
-    }   
-  }
-
-  const config = {
-    cropWidth: 60,
-    cropHeight: 60,
-    brightnessTreshold: 0, // 0 - 255
-    pixelTreshold: 20, // 0 - 255
-  };
-
-  const camera = Camera.getInstance();
-  const analyzer = new CameraAnalyzer()
-
-  $: canShowVideo = VideoSettings.getCanShow();
-  $: isDetectorRunning = false;
-  let video;
-
+  const analyzer = new CameraAnalyzer();
+  let isDetectorRunning = false;
   let dialog;
   let select: boolean = false;
 
-  onMount(() => {
-    requestWakeLock()
+  onDestroy(() => {
+    analyzer.stop();
+    cameraStore.closeStream();
   });
-  onDestroy(() => {});
+
+  const reactiveScreenRelase = (result?: CameraObject | CameraError) => {
+    if (!result || result instanceof CameraError) WakeLocker.release();
+  };
+
+  const reactiveDetectorObserver = (
+    isRunning: boolean,
+    result: CameraObject | CameraError
+  ) => {
+    if (isRunning && result) {
+      if (result instanceof CameraError) {
+        alert(result.errorName);
+      } else {
+        startAnalyzer(result.stream);
+        WakeLocker.request();
+      }
+    }
+  };
+  function handleError(error: CameraError) {
+    alert(error.errorName);
+  }
+  function startAnalyzer(stream: MediaStream) {
+    analyzer.start((result) => {
+      analyzerCallBack;
+    }, stream.getVideoTracks()[0]);
+  }
+  const analyzerCallBack = () => {};
+
+  $: reactiveDetectorObserver(isDetectorRunning, $cameraStore);
+  $: reactiveScreenRelase($cameraStore)
+
   function startStopBtn() {
-    console.log('onStartStop')
-    if (!$cameraId) {
+    if (!cameraStore.deviceId) {
       dialog.show();
       return;
     }
-    if (isDetectorRunning){
+    if (isDetectorRunning) {
       stopDetector();
-    }
-    else {
-      startDetector()
+    } else {
+      startDetector();
     }
   }
-  async function startDetector() {
-    console.log("startDetector()")
-    const result = await camera.getStreamById($cameraId)
-     if(result instanceof CameraError)
-        return
-      isDetectorRunning = true;
-      analyzer.start((result)=>{
-        console.log(result)
-      }, result.getVideoTracks()[0])
+  function startDetector() {
+    cameraStore.requestStream();
+    isDetectorRunning = true;
   }
 
   function stopDetector() {
-    console.log("stopDetecotr()")
-    isDetectorRunning = false
-     analyzer.stop()
-    camera.closeStream()
-  }
-  function stopVideo(){
-    analyzer.stop()
-    analyzer.clear()
-    camera.closeStream()
-  }
-  function onSwitchChange() {
-    canShowVideo = !canShowVideo;
-    VideoSettings.saveCanShow(canShowVideo);
+    isDetectorRunning = false;
+    analyzer.stop();
+    cameraStore.closeStream();
   }
 </script>
 
@@ -119,25 +106,14 @@
     color: white;
     font-size: 24px;
   }
-  sl-switch::part(label) {
-    color: white;
-  }
-  video {
-    height: 200px;
-    width: 100%;
-    object-fit: contain;
-  }
 </style>
 
 <header>
   <h2>Credo</h2>
   <nav>
     <sl-button type="primary">Hits</sl-button>
-    <sl-switch on:slChange={onSwitchChange} checked={canShowVideo}>
-      video
-    </sl-switch>
     <sl-tooltip content="Settings">
-      <sl-icon-button name="gear" />
+      <sl-icon-button on:click={() => dialog.show()} name="gear" />
     </sl-tooltip>
   </nav>
 </header>
@@ -155,11 +131,6 @@
         }} />
     {/if}
   </sl-dialog>
-  <!-- svelte-ignore a11y-media-has-caption -->
-  {#if canShowVideo}
-    <video bind:this={video} />
-  {/if}
-
   <sl-button on:click={startStopBtn} type="info">
     {#if isDetectorRunning}Stop{:else}Start{/if}
   </sl-button>

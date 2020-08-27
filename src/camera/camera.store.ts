@@ -12,11 +12,12 @@ function createCameraStore() {
   const { subscribe, set } = writable<CameraObject | CameraError>(null);
   let stream: MediaStream = null;
   let deviceId: string = localStorage.getItem(CAMERA_KEY);
-
   const store = {
     subscribe,
+    deviceId,
+    closeStream,
     requestStream: async function (id: string = null) {
-      if (!id) deviceId = id;
+      if (id) deviceId = id;
       const videoSettings = getVideoSettings();
       const result = await tryGetStream(videoSettings);
       if (result instanceof CameraError) {
@@ -28,7 +29,6 @@ function createCameraStore() {
       deviceId = getDeviceId();
       save();
     },
-    closeStream,
     getAvaiableCameras: async function () {
       let mediaDevices = await navigator.mediaDevices.enumerateDevices();
       return mediaDevices
@@ -45,7 +45,7 @@ function createCameraStore() {
   return store;
 
   function getVideoSettings(): boolean | MediaTrackConstraints {
-    if (deviceId) return { deviceId: { exact: this.deviceId } };
+    if (deviceId) return { deviceId: { exact: deviceId } };
     return true;
   }
 
@@ -62,7 +62,7 @@ function createCameraStore() {
   }
 
   function getDeviceId() {
-    return this.stream?.getVideoTracks()[0].getSettings().deviceId;
+    return stream?.getVideoTracks()[0].getSettings().deviceId;
   }
 
   function closeStream() {
