@@ -5,6 +5,7 @@ export interface CameraDevice {
   id: string;
   name: string;
 }
+
 export class CameraError {
   constructor(readonly errorName: string) {}
   isNotAllowedError() {
@@ -88,7 +89,7 @@ export class Camera {
   private async tryGetStreamById(id: string) {
     try {
       return await navigator.mediaDevices.getUserMedia({
-        video: { deviceId: { exact: id } },
+        video: { deviceId: { exact: id },width: 4096, height:2160 },
         audio: false,
       });
     } catch (e) {
