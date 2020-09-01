@@ -1,35 +1,56 @@
 import { writable } from "svelte/store";
 import { CameraError } from "./camera-error";
-import type { CameraDevice } from "./camera";
 
-export interface CameraObject {
+export interface Camera {
   id: string;
   stream: MediaStream;
+  error: null | CameraError;
 }
+
+export interface CameraDevice {
+  id: string;
+  name: string;
+}
+
 const CAMERA_KEY = "device_id";
 
 function createCameraStore() {
-  const { subscribe, set } = writable<CameraObject | CameraError>(null);
-  let stream: MediaStream = null;
-  let deviceId: string = localStorage.getItem(CAMERA_KEY);
+  const camera: Camera = {
+    stream: null,
+    id: null,
+    error: null,
+  };
+
+  camera.id = localStorage.getItem(CAMERA_KEY);
+
+  const { subscribe, set } = writable<Camera>(camera);
+
   const store = {
     subscribe,
-    deviceId,
+    id: camera.id,
     closeStream,
+
     requestStream: async function (id: string = null) {
-      if (id) deviceId = id;
+      if (id) camera.id = id;
       const videoSettings = getVideoSettings();
       const result = await tryGetStream(videoSettings);
+
+      closeStream(); // close old stream
+
       if (result instanceof CameraError) {
-        set(result);
+        set({
+          ...camera,
+          error: result,
+        });
         return;
       }
-      closeStream();
-      stream = result;
-      deviceId = getDeviceId();
+      camera.stream = result;
+      camera.id = getDeviceId();
       save();
+      return;
     },
-    getAvaiableCameras: async function () {
+
+    getAvailableCameras: async function () {
       let mediaDevices = await navigator.mediaDevices.enumerateDevices();
       return mediaDevices
         .filter((device) => device.kind === "videoinput")
@@ -38,14 +59,15 @@ function createCameraStore() {
           name: device.label,
         }));
     },
+
     getFacingMode: () => {
-      return stream?.getVideoTracks()[0].getSettings().facingMode;
+      return camera.stream?.getVideoTracks()[0].getSettings().facingMode;
     },
   };
   return store;
 
   function getVideoSettings(): boolean | MediaTrackConstraints {
-    if (deviceId) return { deviceId: { exact: deviceId } };
+    if (camera.id) return { deviceId: camera.id };
     return true;
   }
 
@@ -56,24 +78,23 @@ function createCameraStore() {
         audio: false,
       });
     } catch (e) {
-      console.error(e);
       return new CameraError(e.name);
     }
   }
 
   function getDeviceId() {
-    return stream?.getVideoTracks()[0].getSettings().deviceId;
+    return camera.stream?.getVideoTracks()[0].getSettings().deviceId;
   }
 
   function closeStream() {
-    if (!stream) return;
-    stream.getTracks().forEach((track) => track.stop());
-    stream = null;
-    set(null);
+    if (!camera.stream) return;
+    camera.stream.getTracks().forEach((track) => track.stop());
+    camera.stream = null;
+    set(camera);
   }
   function save() {
-    set({ id: deviceId, stream });
-    localStorage.setItem(CAMERA_KEY, deviceId);
+    set({ ...camera, error: null });
+    localStorage.setItem(CAMERA_KEY, camera.id);
   }
 }
-export const cameraStore = createCameraStore();
+export const camera = createCameraStore();

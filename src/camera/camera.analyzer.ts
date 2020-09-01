@@ -1,4 +1,7 @@
-import { DetectionAlgorithResult as DetectionResult, process } from "./detection.algorithm";
+import {
+  DetectionAlgorithResult as DetectionResult,
+  process,
+} from "./detection.algorithm";
 
 export interface WorkerConfig {
   cropWidth: number;
@@ -25,14 +28,12 @@ export class CameraAnalyzer {
   private callBack = null;
 
   start(
-    callBack: (result:DetectionResult) => void,
+    callBack: (result: DetectionResult) => void,
     videoTrack: MediaStreamTrack
   ) {
-    if (this.isRunning) throw Error("Analyzer is running");
     this.imageCapture = new ImageCapture(videoTrack);
     this.isRunning = true;
     this.callBack = callBack;
-    console.log(this.imageCapture);
     this.grabFrames();
   }
 
@@ -40,13 +41,12 @@ export class CameraAnalyzer {
     this.imageCapture
       .grabFrame()
       .then(this.grabFrameCallback)
-      .catch((e) => {
-        console.log("error !!!", e);
-      });
+      .catch((e) => {});
   }
 
   private grabFrameCallback = (bitmap: ImageBitmap) => {
     this.processImg(bitmap);
+
     if (this.isRunning) {
       this.grabFrames();
     }

@@ -1,10 +1,10 @@
 export class CameraError {
-  constructor(readonly errorName: string) {}
+  constructor(readonly name: string) {}
   isNotAllowedError() {
-    return this.errorName === CameraError.NotAllowedError;
+    return this.name === CameraError.NotAllowedError;
   }
   isNotFoundError() {
-    return this.errorName === CameraError.NotFoundError;
+    return this.name === CameraError.NotFoundError;
   }
   static NotAllowedError = "NotAllowedError";
   static NotFoundError = "NotFoundError";

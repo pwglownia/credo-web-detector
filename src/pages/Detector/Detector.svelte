@@ -1,71 +1,76 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
   import Select from "./Select/Select.svelte";
-  import { CameraError } from "../../camera/camera";
   import { CameraAnalyzer } from "../../camera/camera.analyzer";
-  import { CameraObject, cameraStore } from "../../camera/camera.store";
+  import { camera } from "../../camera/camera.store";
   import { WakeLocker } from "../../util/wake-locker";
+  import type { CameraError } from "../../camera/camera-error";
+  import type { Camera } from "../../camera/camera.store";
+  import Loading from "../../other/Loading.svelte";
 
   const analyzer = new CameraAnalyzer();
-  let isDetectorRunning = false;
+
   let dialog;
   let select: boolean = false;
+  let isRunning = false;
+
+  let hits = []
+
+  // debug
+  $: console.log($camera);
+
+  $: observer(isRunning, $camera);
 
   onDestroy(() => {
     analyzer.stop();
-    cameraStore.closeStream();
+    camera.closeStream();
   });
 
-  const reactiveScreenRelase = (result?: CameraObject | CameraError) => {
-    if (!result || result instanceof CameraError) WakeLocker.release();
-  };
-
-  const reactiveDetectorObserver = (
-    isRunning: boolean,
-    result: CameraObject | CameraError
-  ) => {
-    if (isRunning && result) {
-      if (result instanceof CameraError) {
-        alert(result.errorName);
-      } else {
-        startAnalyzer(result.stream);
+  const observer = (isRunning: boolean, camera: Camera) => {
+    if (!camera.stream || camera.error) {
+      WakeLocker.release();
+    }
+    if (isRunning) {
+      if (camera.error) {
+        handleError(camera.error);
+        return;
+      }
+      if (camera.stream) {
+        startAnalyzer(camera.stream);
         WakeLocker.request();
       }
     }
   };
   function handleError(error: CameraError) {
-    alert(error.errorName);
+    isRunning = false;
+    showDialog();
+  }
+
+  function showDialog() {
+    stop();
+    dialog.show();
   }
   function startAnalyzer(stream: MediaStream) {
-    analyzer.start((result) => {
-      analyzerCallBack;
-    }, stream.getVideoTracks()[0]);
+    analyzer.start(analyzerCallBack, stream.getVideoTracks()[0]);
   }
-  const analyzerCallBack = () => {};
+  const analyzerCallBack = (data) => {
+    console.log(data);
+  };
 
-  $: reactiveDetectorObserver(isDetectorRunning, $cameraStore);
-  $: reactiveScreenRelase($cameraStore)
+  function start() {
+    if (!$camera.id) {
+      showDialog();
 
-  function startStopBtn() {
-    if (!cameraStore.deviceId) {
-      dialog.show();
       return;
     }
-    if (isDetectorRunning) {
-      stopDetector();
-    } else {
-      startDetector();
-    }
-  }
-  function startDetector() {
-    cameraStore.requestStream();
-    isDetectorRunning = true;
+    camera.requestStream();
+    isRunning = true;
   }
 
-  function stopDetector() {
-    isDetectorRunning = false;
+  function stop() {
+    isRunning = false;
     analyzer.stop();
-    cameraStore.closeStream();
+    camera.closeStream();
   }
 </script>
 
@@ -78,33 +83,8 @@
     display: none;
   }
 
-  section {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-  header {
-    height: 75px;
-    width: 100%;
-    background-color: #1a1a1a;
-    color: white;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 16px;
-  }
-  nav {
-    width: 50%;
-    display: flex;
-    justify-content: space-between;
-    flex-direction: row;
-    align-items: center;
-  }
-  sl-icon-button::part(base) {
-    color: white;
-    font-size: 24px;
+  sl-spinner {
+    --indicator-color: #fff;
   }
 </style>
 
@@ -113,7 +93,7 @@
   <nav>
     <sl-button type="primary">Hits</sl-button>
     <sl-tooltip content="Settings">
-      <sl-icon-button on:click={() => dialog.show()} name="gear" />
+      <sl-icon-button on:click={() => showDialog()} name="gear" />
     </sl-tooltip>
   </nav>
 </header>
@@ -131,8 +111,17 @@
         }} />
     {/if}
   </sl-dialog>
-  <sl-button on:click={startStopBtn} type="info">
-    {#if isDetectorRunning}Stop{:else}Start{/if}
-  </sl-button>
+
+  {#if $camera.stream}
+    <sl-button on:click={() => stop()}>Stop</sl-button>
+  {/if}
+
+  {#if !$camera.stream && !isRunning}
+    <sl-button on:click={() => start()}>Start</sl-button>
+  {/if}
+
+  {#if !$camera.stream && isRunning}
+    <sl-button disabled={true}>loading</sl-button>
+  {/if}
 
 </section>

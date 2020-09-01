@@ -1,4 +1,3 @@
-
 import { process, DetectionAlgorithResult } from "./detection.algorithm";
 export interface WorkerConfig {
   cropWidth: number;
@@ -40,13 +39,11 @@ addEventListener("message", (event) => {
   postMessage(result);
 });
 
-
 function setup(bitmap: ImageBitmap) {
-  if (canvas === undefined)setupCanvas(bitmap);
+  if (canvas === undefined) setupCanvas(bitmap);
   if (particleImg === undefined)
     particleImg = new ImageData(bitmap.width, bitmap.height);
 }
-
 
 function setupCanvas(bitmap: ImageBitmap) {
   canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
@@ -59,4 +56,3 @@ function bitmapToImageData(bitmap: ImageBitmap): ImageData {
   const imageData = canvasCtx.getImageData(0, 0, bitmap.width, bitmap.height); // add paddings here
   return imageData;
 }
-

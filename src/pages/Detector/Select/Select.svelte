@@ -1,29 +1,22 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
   import { createEventDispatcher, identity } from "svelte/internal";
-  import { Camera, CameraError } from "../../../camera/camera";
   import NoCamera from "./_NoCamera.svelte";
   import NoPermission from "./_NoPermission.svelte";
   import { fade } from "svelte/transition";
-
-  const camera = Camera.getInstance();
+  import { camera } from "../../../camera/camera.store";
+  import type { Camera } from "../../../camera/camera.store";
+  import type { CameraError } from "../../../camera/camera-error";
+  import Prompt from "./_Prompt.svelte";
 
   const dispatch = createEventDispatcher();
 
-  let stream = null;
   let cameras = [];
-
-  const ui = {
-    loading: true,
-    hasPermission: null,
-    hasCamera: null,
-    hasProblem: null,
-  };
-
+  let loading;
   let facing: string;
 
-  $: if (stream && video) {
-    video.srcObject = stream;
+  $: if ($camera.stream && video) {
+    video.srcObject = $camera.stream;
     facing = camera.getFacingMode();
   }
 
@@ -31,71 +24,43 @@
 
   let video: HTMLVideoElement;
 
-  onMount(() => {
-    initCamera();
+  let prompt = false;
+
+  onMount(async () => {
+    const res = await navigator.permissions.query({ name: "camera" });
+
+    if (res.state === "prompt") {
+      prompt = true;
+    }
+
+    loading = true;
+    await camera.requestStream();
+    cameras = await camera.getAvailableCameras();
+    loading = false;
   });
 
   onDestroy(() => {
-    // video.srcObject = null;
+    if (video) {
+      video.srcObject = null;
+    }
     camera.closeStream();
   });
 
-  async function initCamera() {
-    const result = await camera.getDefaultStream();
-    await handleCameraResult(result);
-    cameras = await camera.getAvaiableCameras();
-  }
-
-  async function handleCameraResult(result: MediaStream | CameraError) {
-    if (result instanceof CameraError) {
-      errorCase(result);
-    } else {
-      ui.hasPermission = true;
-      ui.hasCamera = true;
-      ui.hasProblem = false;
-
-      stream = result;
-    }
-    ui.loading = false;
-  }
-
-  function errorCase(cameraError: CameraError) {
-    if (cameraError.isNotAllowedError()) {
-      ui.hasPermission = false;
-    } else if (cameraError.isNotFoundError()) {
-      ui.hasCamera = false;
-    } else {
-      ui.hasProblem = true;
-      alert(cameraError); // TODO: show more love to user, and print it more gracefully
-    }
-  }
   async function changeCamera(id: string) {
-    ui.loading = true;
     disabled = true;
-    if (id === camera.deviceId) {
+    if (id === $camera.id) {
       disabled = false;
       return;
     }
-    video.srcObject = null;
-    const result = await camera.getStreamById(id);
-    await handleCameraResult(result);
+    if (video) {
+      video.srcObject = null;
+    }
+    await camera.requestStream(id);
     disabled = false;
   }
-
-  function accept() {
-    camera.saveCameraId();
+  function close() {
     dispatch("close");
   }
-
-  function cancel() {
-    dispatch("close");
-  }
-
-  navigator.permissions.query({ name: "camera" }).then((permission) => {
-    permission.onchange = function () {
-      if (this.state !== "granted") location.reload();
-    };
-  });
 </script>
 
 <style>
@@ -146,56 +111,66 @@
   }
 </style>
 
-{#if ui.loading}
+{#if loading === true}
+  {#if prompt}
+    <Prompt />
+  {/if}
+
   <div class="loading">
-    <p>Loading available cameras...</p>
     <br />
     <sl-spinner />
   </div>
-{/if}
+{:else}
 
-{#if ui.hasPermission === false}
-  <NoPermission />
-{/if}
+  {#if $camera.error?.isNotAllowedError()}
+    <NoPermission />
+  {/if}
 
-{#if ui.hasCamera === false}
-  <NoCamera />
-{/if}
+  {#if $camera.error?.isNotFoundError()}
+    <NoCamera />
+  {/if}
 
-{#if ui.hasProblem === true}some problem{/if}
+  {#if $camera.error}
+    <sl-button
+      on:click={() => {
+        location.reload();
+      }}>
+      Refresh
+    </sl-button>
+  {/if}
 
-{#if ui.hasPermission === true && ui.hasCamera === true && ui.hasProblem === false}
-  <!-- svelte-ignore a11y-media-has-caption -->
-  <div transition:fade>
-    <video
-      class={facing === 'user' ? 'inverted' : ''}
-      bind:this={video}
-      autoplay />
+  {#if $camera.stream}
+    <div transition:fade>
+      <!-- svelte-ignore a11y-media-has-caption -->
+      <video
+        class={facing === 'user' ? 'inverted' : ''}
+        bind:this={video}
+        autoplay />
 
-    <div class="container">
-      <div class="info">
-        <p>
-          Select the camera that is
-          <a href="/">best suited</a>
-          for detections
-        </p>
-      </div>
+      <div class="container">
+        <div class="info">
+          <p>
+            Select the camera that is
+            <a href="/">best suited</a>
+            for detections
+          </p>
+        </div>
 
-      <div class="controls">
-        {#each cameras as { id, name }}
-          <sl-radio
-            {disabled}
-            name="camera"
-            on:slChange={() => changeCamera(id)}
-            checked={id === camera.deviceId}>
-            {name}
-          </sl-radio>
-        {/each}
-      </div>
-      <div class="buttons">
-        <sl-button on:click={() => cancel()}>Cancel</sl-button>
-        <sl-button type="primary" on:click={() => accept()}>Choose</sl-button>
+        <div class="controls">
+          {#each cameras as { id, name }}
+            <sl-radio
+              {disabled}
+              name="camera"
+              on:slChange={() => changeCamera(id)}
+              checked={id === $camera.id}>
+              {name}
+            </sl-radio>
+          {/each}
+        </div>
+        <div class="buttons">
+          <sl-button type="primary" on:click={() => close()}>Choose</sl-button>
+        </div>
       </div>
     </div>
-  </div>
+  {/if}
 {/if}
