@@ -5,22 +5,23 @@
   import { CameraAnalyzer } from "../../camera/camera.analyzer";
   import { CameraObject, cameraStore } from "../../camera/camera.store";
   import { WakeLocker } from "../../util/wake-locker";
-  import { ImageConverter } from "../../util/image-converter";
+  import { ImageConverter } from "../../detection/image-converter";
   import type { DetectionAlgorithResult } from "../../camera/detection.algorithm";
-  import { geoposition } from "../../geolocation/location.store";
+  import { geoposition } from "../../geolocation/location-store";
+  import { DetectorSaver } from "../../detection/detection-saver";
   const analyzer = new CameraAnalyzer();
   let isDetectorRunning = false;
   let dialog;
   let select: boolean = false;
 
   onMount(() => {
-    geoposition.startWatchingPostion()
+    geoposition.startWatchingPostion();
   });
 
   onDestroy(() => {
     analyzer.stop();
     cameraStore.closeStream();
-    geoposition.stopWatchingPostion()
+    geoposition.stopWatchingPostion();
   });
 
   const reactiveScreenRelase = (result?: CameraObject | CameraError) => {
@@ -44,12 +45,12 @@
     alert(error.errorName);
   }
   function startAnalyzer(stream: MediaStream) {
-    analyzer.start((result) => {
-      if (result.particleImg)
-        ImageConverter.converImageDataToBase64(result.particleImg);
-    }, stream.getVideoTracks()[0]);
+    analyzer.start(analyzerCallBack, stream.getVideoTracks()[0]);
   }
-  const analyzerCallBack = (resullt: DetectionAlgorithResult) => {};
+  const analyzerCallBack = (resullt: DetectionAlgorithResult) => {
+    if (resullt.particleImg)
+      DetectorSaver.save(resullt.particleImg, $geoposition.postion);
+  };
 
   $: reactiveDetectorObserver(isDetectorRunning, $cameraStore);
   $: reactiveScreenRelase($cameraStore);
