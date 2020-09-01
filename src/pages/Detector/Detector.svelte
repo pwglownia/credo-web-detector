@@ -3,10 +3,15 @@
   import Select from "./Select/Select.svelte";
   import { CameraAnalyzer } from "../../camera/camera.analyzer";
   import { camera } from "../../camera/camera.store";
+  import { geoposition } from "../../geolocation/location-store";
   import { WakeLocker } from "../../util/wake-locker";
   import type { CameraError } from "../../camera/camera-error";
   import type { Camera } from "../../camera/camera.store";
+  import type { DetectionAlgorithmResult } from "../../camera/detection.algorithm";
   import Loading from "../../other/Loading.svelte";
+
+  import { DetectionSaver } from "../../detection/detection-saver";
+  import Hits from "./_Hits.svelte";
 
   const analyzer = new CameraAnalyzer();
 
@@ -14,20 +19,16 @@
   let select: boolean = false;
   let isRunning = false;
 
-  let hits = []
-
-  // debug
-  $: console.log($camera);
-
   $: observer(isRunning, $camera);
 
   onMount(() => {
-    // geoposition.startWatchingPostion();
+    geoposition.startWatchingPosition();
   });
 
   onDestroy(() => {
     analyzer.stop();
     camera.closeStream();
+    geoposition.stopWatchingPosition();
   });
 
   const observer = (isRunning: boolean, camera: Camera) => {
@@ -57,8 +58,10 @@
   function startAnalyzer(stream: MediaStream) {
     analyzer.start(analyzerCallBack, stream.getVideoTracks()[0]);
   }
-  const analyzerCallBack = (data) => {
-    console.log(data);
+  const analyzerCallBack = (data: DetectionAlgorithmResult) => {
+    if (data.particleImg) {
+      DetectionSaver.save(data.particleImg, $geoposition.position);
+    }
   };
 
   function start() {
@@ -128,4 +131,5 @@
     <sl-button disabled={true}>loading</sl-button>
   {/if}
 
+  <Hits />
 </section>

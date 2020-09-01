@@ -1,18 +1,18 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
   import { createEventDispatcher, identity } from "svelte/internal";
+  import Prompt from "./_Prompt.svelte";
   import NoCamera from "./_NoCamera.svelte";
   import NoPermission from "./_NoPermission.svelte";
-  import { fade } from "svelte/transition";
   import { camera } from "../../../camera/camera.store";
   import type { Camera } from "../../../camera/camera.store";
   import type { CameraError } from "../../../camera/camera-error";
-  import Prompt from "./_Prompt.svelte";
+  import { fade } from "svelte/transition";
 
   const dispatch = createEventDispatcher();
 
   let cameras = [];
-  let loading;
+  let loading = false;
   let facing: string;
 
   $: if ($camera.stream && video) {

@@ -1,37 +1,37 @@
 import { writable } from "svelte/store";
 
 export interface Geoposition {
-  postion?: Position;
+  position?: Position;
   error?: PositionError;
 }
 
 function createGeopositionStore() {
   const geoposition: Geoposition = {
-    postion: null,
+    position: null,
     error: null,
   };
   const { set, subscribe } = writable(geoposition);
   let watcherId = null;
-  function startWatchingPostion() {
+  function startWatchingPosition() {
     watcherId = navigator.geolocation.watchPosition(
-      (postion) => {
-        geoposition.postion = postion;
+      (position) => {
+        geoposition.position = position;
         geoposition.error = null;
         set(geoposition);
       },
       (error) => {
         geoposition.error = error;
-        geoposition.postion = null;
+        geoposition.position = null;
         set(geoposition);
       },
       { enableHighAccuracy: true, timeout: 0 }
     );
   }
-  function stopWatchingPostion() {
+  function stopWatchingPosition() {
     if (watcherId) navigator.geolocation.clearWatch(watcherId);
   }
 
-  return { subscribe, startWatchingPostion, stopWatchingPostion };
+  return { subscribe, startWatchingPosition, stopWatchingPosition };
 }
 
 export const geoposition = createGeopositionStore();

@@ -2,10 +2,8 @@
   import { appRoute } from "../../store";
 </script>
 
-<p>
-  The app is in development phase. Therefore login is disabled. You can proceed
-  as anonymous user.
-</p>
+<p>The app is in development phase. Therefore login is disabled.</p>
+<p>You can proceed as anonymous user.</p>
 <sl-button
   on:click={() => {
     appRoute.set('detector');

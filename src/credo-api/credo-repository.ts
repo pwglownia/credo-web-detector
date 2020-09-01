@@ -18,10 +18,10 @@ function createCredoRepository() {
   }
 
   function submitDetections(detections: Detections, token: string) {
-    const tokenHeader = {
-      Authorization: `Token ${token}`,
-    };
-    return axios.put("detection", detections, { headers: tokenHeader });
+    // const tokenHeader = {
+    //   Authorization: `Token ${token}`,
+    // };
+    // return axios.put("detection", detections, { headers: tokenHeader });
   }
   return {
     register,

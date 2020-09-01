@@ -1,24 +1,21 @@
 import {
-  DetectionAlgorithResult as DetectionResult,
+  DetectionAlgorithmResult as DetectionResult,
   process,
 } from "./detection.algorithm";
 
-export interface WorkerConfig {
+export interface Config {
   cropWidth: number;
   cropHeight: number;
   brightnessTreshold: number;
   pixelTreshold: number;
-  imagePaddigInPercent: number;
 }
 
-const config: WorkerConfig = {
+const config: Config = {
   cropWidth: 60,
   cropHeight: 60,
-  brightnessTreshold: 50, // 0 - 255
-  pixelTreshold: 210, // 0 - 255
-  imagePaddigInPercent: 0.1,
+  brightnessTreshold: 1, // 0 - 255
+  pixelTreshold: 210, // 0 - 765
 };
-let bitmap;
 
 export class CameraAnalyzer {
   private imageCapture: ImageCapture = null;
@@ -57,14 +54,12 @@ export class CameraAnalyzer {
 
   private processImg(bitmap: ImageBitmap) {
     this.setUpCanvasIfNecessary(bitmap);
-    console.time("PROCESS");
     const result = process(
       this.bitmapToImageData(bitmap),
       this.particleImg,
       config.brightnessTreshold,
       config.pixelTreshold
     );
-    console.timeEnd("PROCESS");
     if (this.callBack) {
       this.callBack(result);
     }
@@ -80,7 +75,6 @@ export class CameraAnalyzer {
   }
 
   private bitmapToImageData(bitmap: ImageBitmap): ImageData {
-    console.time("CONVERT");
     this.canvasCtx.drawImage(bitmap, 0, 0);
 
     const imageData = this.canvasCtx.getImageData(
@@ -89,7 +83,6 @@ export class CameraAnalyzer {
       bitmap.width,
       bitmap.height
     ); // add paddings here
-    console.timeEnd("CONVERT");
     return imageData;
   }
 

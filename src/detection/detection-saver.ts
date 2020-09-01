@@ -1,10 +1,6 @@
 import { ImageConverter } from "./image-converter";
 import { requiredFields } from "../credo-api/models";
-import type {
-  Detection,
-  DetectionPostion,
-  Detections,
-} from "../credo-api/models";
+import type { Detection, DetectionPostion } from "../credo-api/models";
 import { DetectionStorage } from "./detection-storage";
 import { CredoRepsitory } from "../credo-api/credo-repository";
 import { TokenStorage } from "../token/token-storage";
@@ -32,15 +28,15 @@ function createDetecotSaver() {
         altitude: -1,
         latitude: -1,
         longitude: -1,
-        provider: "Unknow",
+        provider: "Unknown",
       };
     return {
       accuracy: position.coords.accuracy,
       altitude: position.coords.altitude,
       latitude: position.coords.latitude,
       longitude: position.coords.longitude,
-      provider: "Unknow",
+      provider: "Unknown",
     };
   }
 }
-export const DetectorSaver = createDetecotSaver();
+export const DetectionSaver = createDetecotSaver();

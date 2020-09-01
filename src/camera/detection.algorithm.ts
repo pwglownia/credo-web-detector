@@ -1,4 +1,4 @@
-export interface DetectionAlgorithResult {
+export interface DetectionAlgorithmResult {
   brightness: number;
   particleImg: ImageData | null;
 }
@@ -17,11 +17,15 @@ export function process(
   particleImg: ImageData,
   brightnessTreshold: number,
   pixelTreshold: number
-): DetectionAlgorithResult {
+): DetectionAlgorithmResult {
   imgLength = imageData.data.length;
   imgArray = imageData.data;
 
   setBrightnessAndMaxValue(imgArray, imgLength);
+
+  console.log("brightness", brightnessTreshold, "|", brightness);
+  console.log("pixel", maxPixelValue, "|", pixelTreshold);
+
   if (brightnessTreshold > brightness) {
     if (maxPixelValue > pixelTreshold) {
       particleImg = cropImage(imageData, particleImg);
