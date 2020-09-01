@@ -12,6 +12,7 @@
 
   import { DetectionSaver } from "../../detection/detection-saver";
   import Hits from "./_Hits.svelte";
+  import { fade } from "svelte/transition";
 
   const analyzer = new CameraAnalyzer();
 
@@ -96,7 +97,7 @@
 </style>
 
 <header>
-  <h2>Credo</h2>
+  <sl-avatar />
   <nav>
     <sl-button type="primary">Hits</sl-button>
     <sl-tooltip content="Settings">
@@ -107,6 +108,8 @@
 <section>
 
   <sl-dialog
+    in:fade={{ duration: 400 }}
+    out:fade={{ duration: 400 }}
     on:slShow={() => (select = true)}
     on:slHide={() => (select = false)}
     bind:this={dialog}
@@ -131,5 +134,5 @@
     <sl-button disabled={true}>loading</sl-button>
   {/if}
 
-  <Hits />
+  <!-- <Hits /> -->
 </section>

@@ -1,7 +1,7 @@
 import { writable } from "svelte/store";
 
 // Routes
-export const appRoute = writable<"login" | "detector">("login");
+export const appRoute = writable<"login" | "detector">("detector");
 export const detectorRoute = writable<"main">("main");
 
 // Miscs

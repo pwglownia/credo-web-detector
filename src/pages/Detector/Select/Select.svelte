@@ -47,14 +47,14 @@
   });
 
   async function changeCamera(id: string) {
-    disabled = true;
     if (id === $camera.id) {
-      disabled = false;
       return;
     }
     if (video) {
       video.srcObject = null;
     }
+    disabled = true;
+
     await camera.requestStream(id);
     disabled = false;
   }
@@ -130,17 +130,8 @@
     <NoCamera />
   {/if}
 
-  {#if $camera.error}
-    <sl-button
-      on:click={() => {
-        location.reload();
-      }}>
-      Refresh
-    </sl-button>
-  {/if}
-
   {#if $camera.stream}
-    <div transition:fade>
+    <div>
       <!-- svelte-ignore a11y-media-has-caption -->
       <video
         class={facing === 'user' ? 'inverted' : ''}
@@ -161,7 +152,7 @@
             <sl-radio
               {disabled}
               name="camera"
-              on:slChange={() => changeCamera(id)}
+              on:click={() => changeCamera(id)}
               checked={id === $camera.id}>
               {name}
             </sl-radio>

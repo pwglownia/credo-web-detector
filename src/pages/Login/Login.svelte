@@ -1,5 +1,5 @@
 <script>
-  import { appRoute } from "../../store";
+  import { appRoute } from "../../router";
 </script>
 
 <p>The app is in development phase. Therefore login is disabled.</p>

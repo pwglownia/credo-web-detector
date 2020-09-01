@@ -33,20 +33,25 @@ function createCameraStore() {
     requestStream: async function (id: string = null) {
       if (id) camera.id = id;
       const videoSettings = getVideoSettings();
-      const result = await tryGetStream(videoSettings);
 
       closeStream(); // close old stream
 
+      const result = await tryGetStream(videoSettings);
+
       if (result instanceof CameraError) {
+       
         set({
           ...camera,
           error: result,
         });
+
         return;
       }
+
       camera.stream = result;
       camera.id = getDeviceId();
       save();
+
       return;
     },
 
