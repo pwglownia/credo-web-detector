@@ -21,6 +21,10 @@
 
   $: observer(isRunning, $camera);
 
+  onMount(() => {
+    // geoposition.startWatchingPostion();
+  });
+
   onDestroy(() => {
     analyzer.stop();
     camera.closeStream();
