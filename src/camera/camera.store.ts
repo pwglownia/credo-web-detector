@@ -45,7 +45,7 @@ function createCameraStore() {
   return store;
 
   function getVideoSettings(): boolean | MediaTrackConstraints {
-    if (deviceId) return { deviceId: { exact: deviceId } };
+    if (deviceId) return { deviceId: { exact: deviceId }  };
     return true;
   }
 

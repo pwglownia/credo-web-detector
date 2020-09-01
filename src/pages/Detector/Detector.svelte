@@ -5,15 +5,22 @@
   import { CameraAnalyzer } from "../../camera/camera.analyzer";
   import { CameraObject, cameraStore } from "../../camera/camera.store";
   import { WakeLocker } from "../../util/wake-locker";
-
+  import { ImageConverter } from "../../util/image-converter";
+  import type { DetectionAlgorithResult } from "../../camera/detection.algorithm";
+  import { geoposition } from "../../geolocation/location.store";
   const analyzer = new CameraAnalyzer();
   let isDetectorRunning = false;
   let dialog;
   let select: boolean = false;
 
+  onMount(() => {
+    geoposition.startWatchingPostion()
+  });
+
   onDestroy(() => {
     analyzer.stop();
     cameraStore.closeStream();
+    geoposition.stopWatchingPostion()
   });
 
   const reactiveScreenRelase = (result?: CameraObject | CameraError) => {
@@ -38,13 +45,14 @@
   }
   function startAnalyzer(stream: MediaStream) {
     analyzer.start((result) => {
-      analyzerCallBack;
+      if (result.particleImg)
+        ImageConverter.converImageDataToBase64(result.particleImg);
     }, stream.getVideoTracks()[0]);
   }
-  const analyzerCallBack = () => {};
+  const analyzerCallBack = (resullt: DetectionAlgorithResult) => {};
 
   $: reactiveDetectorObserver(isDetectorRunning, $cameraStore);
-  $: reactiveScreenRelase($cameraStore)
+  $: reactiveScreenRelase($cameraStore);
 
   function startStopBtn() {
     if (!cameraStore.deviceId) {
