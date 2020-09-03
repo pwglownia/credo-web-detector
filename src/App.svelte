@@ -10,7 +10,7 @@
   window.onload = () => {
     setTimeout(() => {
       appLoading.set(false);
-    }, 2000);
+    }, 0);
   };
 </script>
 

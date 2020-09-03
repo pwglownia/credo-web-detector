@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
 
-  let time = 0;
+  let time = 3600;
   let output = "0s";
 
   const interval = setInterval(() => update(), 1000);
@@ -12,18 +12,10 @@
   const update = () => {
     time++;
     if (time < 60) {
-      output = time + "s";
+      output = time + " " + "s";
       return;
     }
-
-    if (time < 3600) {
-      output = Math.round(time / 60) + "min";
-      return;
-    }
-
-    if (time < 86400) {
-      Math.round(time / 3600) + "h" + " " + Math.round(time % 60) + "min";
-    }
+    output = Math.round(time / 60) + " " + "min";
   };
   onDestroy(() => {
     clearInterval(interval);

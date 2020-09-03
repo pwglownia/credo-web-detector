@@ -1,9 +1,4 @@
-import type {
-  RegisterUser,
-  UserCredential,
-  SuccessLogin,
-  Detections,
-} from "./models";
+import type { Detections } from "./models";
 import axios from "axios";
 
 function createCredoRepository() {
@@ -23,4 +18,3 @@ function createCredoRepository() {
   };
 }
 export const CredoRepsitory = createCredoRepository();
-

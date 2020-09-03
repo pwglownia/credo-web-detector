@@ -65,16 +65,16 @@
     analyzer.start(analyzerCallBack, stream.getVideoTracks()[0]);
   }
 
-  const analyzerCallBack = (data: DetectionAlgorithmResult) => {
-    const updateBrightness = function (b) {
-      console.log(b)
-      brightness = b / 2.55;
-    };
+  const updateBrightness = function (b) {
+    brightness = b / 2.55;
+  };
 
-    throttle(updateBrightness(data.brightness), 100);
+  const analyzerCallBack = (data: DetectionAlgorithmResult) => {
+    throttle(updateBrightness, 1000, data.brightness);
 
     if (data.particleImg) {
       newParticleCaught.set(true);
+      // ring ring
       DetectionSaver.save(data.particleImg, $geoposition.position);
     }
   };
@@ -118,13 +118,23 @@
 
   @media only screen and (max-width: 600px) {
     .card {
-      flex-direction: column-reverse;
+      flex-direction: column;
       border-radius: var(--sl-border-radius-large);
+      min-height: 20rem;
     }
 
     .control {
-      border-bottom-right-radius: var(--sl-border-radius-large);
-      border-bottom-left-radius: var(--sl-border-radius-large);
+      height: 5rem;
+      border-top-right-radius: var(--sl-border-radius-large);
+      border-top-left-radius: var(--sl-border-radius-large);
+    }
+
+    .loading {
+      padding: var(--sl-spacing-large);
+    }
+
+    .settings {
+      top: calc(var(--sl-spacing-large) + 70px) !important;
     }
   }
 
@@ -241,7 +251,7 @@
 
   <div class="info">
     {#if !$camera.stream && !isRunning}
-      <section class="off" in:fade>
+      <section in:fade>
         {#if $camera.id}
           <span class="settings">
             <sl-tooltip placement="left" content="Settings">
@@ -279,7 +289,7 @@
     {/if}
 
     {#if $camera.stream && isRunning}
-      <section class="on" in:fade>
+      <section in:fade>
         {#if brightness > 1}
           {#if brightness > 10}
             <div in:fade>

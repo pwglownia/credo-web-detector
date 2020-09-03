@@ -3,6 +3,8 @@ export interface DetectionAlgorithmResult {
   particleImg: ImageData | null;
 }
 
+const padding = 40;
+
 let brightness: number,
   maxPixelValue = 0,
   redIndex: number,
@@ -13,7 +15,8 @@ let brightness: number,
   index: number,
   start: number,
   end: number,
-  lineGuard: number;
+  innerWidth: number,
+  innerHeight: number;
 
 export function process(
   imageData: ImageData,
@@ -24,7 +27,12 @@ export function process(
   imgLength = imageData.data.length;
   imgArray = imageData.data;
 
-  setBrightnessAndMaxValue(imageData.width, imageData.height, imgArray, imgLength);
+  setBrightnessAndMaxValue(
+    imageData.width,
+    imageData.height,
+    imgArray,
+    imgLength
+  );
 
   if (brightnessTreshold > brightness) {
     if (maxPixelValue > pixelTreshold) {
@@ -43,25 +51,28 @@ function setBrightnessAndMaxValue(
   imgWidth: number,
   imgHeight: number,
   imgArray: Uint8ClampedArray,
-  imgLenght: number
+  imgLength: number
 ) {
   let sum = 0;
   maxPixelValue = 0;
-  // set up values for padding 30 px 
-  start = imgWidth * 30 + 120;
-  end = imgLenght - start;
-  lineGuard = 2 * start;
-  for (let i = start; i < end; i += 4) {
-    if (i < i + lineGuard) continue;
-    let valueOfCurrentPixel = imgArray[i] + imgArray[i + 1] + imgArray[i + 2];
-    sum += valueOfCurrentPixel;
+  // set up values for padding 30 px
+  start = imgWidth * padding * 4 + padding * 4; // 4 * px
+  end = imgLength - start; // 4 * px
 
-    if (valueOfCurrentPixel > maxPixelValue) {
-      maxPixelValue = valueOfCurrentPixel;
-      redIndex = i;
+  innerWidth = imgWidth - 2 * padding; // px
+  innerHeight = imgHeight - 2 * padding; // px
+
+  for (let i = start; i < end; i += imgWidth * 4) {
+    for (let j = i; j < i + innerWidth * 4; j += 4) {
+      let valueOfCurrentPixel = imgArray[j] + imgArray[j + 1] + imgArray[j + 2];
+      sum += valueOfCurrentPixel;
+      if (valueOfCurrentPixel > maxPixelValue) {
+        maxPixelValue = valueOfCurrentPixel;
+        redIndex = j;
+      }
     }
   }
-  brightness = sum / (((imgWidth-240)*(imgHeight-240)) * (3 / 4));
+  brightness = sum / (innerWidth * innerHeight * 3);
 }
 
 function cropImage(imgToCut: ImageData, particleImg: ImageData): ImageData {

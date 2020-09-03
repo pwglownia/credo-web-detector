@@ -5,6 +5,7 @@ body {
 }
 
 body {
+  position: absolute;
   margin: 0;
   font-family: var(--fontFamily);
   background: var(--sl-color-primary-5);

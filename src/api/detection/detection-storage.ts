@@ -5,8 +5,8 @@ function createDetectionStorage() {
   function save(detection: Detection) {
     let resuls = localStorage.getItem(DETECTION_KEY);
     const array = converToArrayOfDetection(resuls);
-    if (array.length > 20) array.shift();
-    array.push(detection);
+    if (array.length > 19) array.pop();
+    array.unshift(detection);
     localStorage.setItem(DETECTION_KEY, JSON.stringify(array));
   }
   function get(): Array<Detection> {

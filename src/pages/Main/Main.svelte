@@ -35,10 +35,10 @@
   }
 
   .badge-icon {
-    position: relative;
-    font-size: 18px;
-    top: 4px;
-    margin-right: 2px;
+    position: absolute;
+    font-size: 1rem;
+    top: 0.5rem;
+    left: 50px;
   }
 </style>
 
@@ -47,7 +47,9 @@
   <Header />
 
   <div class="card">
-    <sl-tab-group on:click={newParticleCaught.set(false)} bind:this={tabGroup}>
+    <sl-tab-group
+      bind:this={tabGroup}
+      on:click={() => newParticleCaught.set(false)}>
       <sl-tab slot="nav" panel="main">Detector</sl-tab>
       <sl-tab slot="nav" panel="hits">
         {#if $newParticleCaught}

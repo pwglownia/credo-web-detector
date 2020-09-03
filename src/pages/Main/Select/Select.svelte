@@ -143,7 +143,7 @@
         <div class="info">
           <h1>Select Camera</h1>
           <hr />
-          <p>Select the camera that will be used for detecion</p>
+          <p>Select the camera that will be used for detection</p>
         </div>
 
         <div class="controls">

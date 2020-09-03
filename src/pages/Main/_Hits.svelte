@@ -7,7 +7,6 @@
 
   const interval = setInterval(() => (hits = DetectionStorage.get()), 5000);
   hits = DetectionStorage.get();
-  console.log(hits);
   onDestroy(() => clearInterval(interval));
 </script>
 
