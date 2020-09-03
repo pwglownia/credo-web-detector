@@ -5,6 +5,7 @@ export interface Camera {
   id: string;
   stream: MediaStream;
   error: null | CameraError;
+  pending: boolean;
 }
 
 export interface CameraDevice {
@@ -19,6 +20,7 @@ function createCameraStore() {
     stream: null,
     id: null,
     error: null,
+    pending: false,
   };
 
   camera.id = localStorage.getItem(CAMERA_KEY);
@@ -26,32 +28,35 @@ function createCameraStore() {
   const { subscribe, set } = writable<Camera>(camera);
 
   const store = {
-    subscribe,
     id: camera.id,
+    pending: camera.pending,
+
+    subscribe,
     closeStream,
 
     requestStream: async function (id: string = null) {
+      closeStream();
+
+      if (camera.pending) return;
+      camera.pending = true;
+
       if (id) camera.id = id;
+
       const videoSettings = getVideoSettings();
-
-      closeStream(); // close old stream
-
       const result = await tryGetStream(videoSettings);
+      camera.pending = false;
 
       if (result instanceof CameraError) {
-       
         set({
           ...camera,
           error: result,
         });
-
         return;
       }
 
       camera.stream = result;
       camera.id = getDeviceId();
       save();
-
       return;
     },
 
@@ -97,6 +102,7 @@ function createCameraStore() {
     camera.stream = null;
     set(camera);
   }
+
   function save() {
     set({ ...camera, error: null });
     localStorage.setItem(CAMERA_KEY, camera.id);

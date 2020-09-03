@@ -4,9 +4,9 @@
   import Prompt from "./_Prompt.svelte";
   import NoCamera from "./_NoCamera.svelte";
   import NoPermission from "./_NoPermission.svelte";
-  import { camera } from "../../../camera/camera.store";
-  import type { Camera } from "../../../camera/camera.store";
-  import type { CameraError } from "../../../camera/camera-error";
+  import { camera } from "../../../api/camera/camera.store";
+  import type { Camera } from "../../../api/camera/camera.store";
+  import type { CameraError } from "../../../api/camera/camera-error";
   import { fade } from "svelte/transition";
 
   const dispatch = createEventDispatcher();
@@ -50,6 +50,7 @@
     if (id === $camera.id) {
       return;
     }
+
     if (video) {
       video.srcObject = null;
     }
@@ -74,7 +75,7 @@
   }
 
   .container {
-    padding: var(--spaceLg);
+    padding: var(--sl-spacing-large);
   }
 
   video {
@@ -87,7 +88,7 @@
   }
 
   .controls {
-    padding: var(--spaceMd);
+    padding: var(--sl-spacing-medium);
   }
 
   .info > p {
@@ -95,7 +96,7 @@
   }
 
   sl-radio {
-    padding: var(--spaceSm);
+    padding: var(--sl-spacing-small);
   }
 
   .buttons {
@@ -114,12 +115,12 @@
 {#if loading === true}
   {#if prompt}
     <Prompt />
+  {:else}
+    <div class="loading">
+      <br />
+      <sl-spinner />
+    </div>
   {/if}
-
-  <div class="loading">
-    <br />
-    <sl-spinner />
-  </div>
 {:else}
 
   {#if $camera.error?.isNotAllowedError()}
@@ -130,7 +131,7 @@
     <NoCamera />
   {/if}
 
-  {#if $camera.stream}
+  {#if $camera.stream || $camera.pending}
     <div>
       <!-- svelte-ignore a11y-media-has-caption -->
       <video
@@ -140,11 +141,9 @@
 
       <div class="container">
         <div class="info">
-          <p>
-            Select the camera that is
-            <a href="/">best suited</a>
-            for detections
-          </p>
+          <h1>Select Camera</h1>
+          <hr />
+          <p>Select the camera that will be used for detecion</p>
         </div>
 
         <div class="controls">
@@ -159,7 +158,7 @@
           {/each}
         </div>
         <div class="buttons">
-          <sl-button type="primary" on:click={() => close()}>Choose</sl-button>
+          <sl-button type="primary" on:click={() => close()}>Accept</sl-button>
         </div>
       </div>
     </div>

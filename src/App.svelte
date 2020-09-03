@@ -1,20 +1,20 @@
 <script>
-  import Loading from "./other/Loading.svelte";
+  import Loading from "./pages/Loading.svelte";
   import isMobile from "./util/isMobile";
   import { appRoute, appLoading } from "./router";
-  import Layout from "./other/Layout.svelte";
 
-  import Login from "./pages/Login/Login.svelte";
-  import Detector from "./pages/Detector/Detector.svelte";
+  import Login from "./pages/Login.svelte";
+  import Frame from "./misc/_Frame.svelte";
+  import Main from "./pages/Main/Main.svelte";
 
   window.onload = () => {
     setTimeout(() => {
       appLoading.set(false);
-    }, 500);
+    }, 2000);
   };
 </script>
 
-<Layout>
+<Frame>
   {#if $appLoading}
     <Loading />
   {/if}
@@ -24,6 +24,6 @@
   {/if}
 
   {#if $appRoute === 'detector'}
-    <Detector />
+    <Main />
   {/if}
-</Layout>
+</Frame>

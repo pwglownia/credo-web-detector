@@ -10,7 +10,10 @@ let brightness: number,
   imgArray: Uint8ClampedArray,
   lineIndex: number,
   newLineGuard: number,
-  index: number;
+  index: number,
+  start: number,
+  end: number,
+  lineGuard: number;
 
 export function process(
   imageData: ImageData,
@@ -21,10 +24,7 @@ export function process(
   imgLength = imageData.data.length;
   imgArray = imageData.data;
 
-  setBrightnessAndMaxValue(imgArray, imgLength);
-
-  console.log("brightness", brightnessTreshold, "|", brightness);
-  console.log("pixel", maxPixelValue, "|", pixelTreshold);
+  setBrightnessAndMaxValue(imageData.width, imageData.height, imgArray, imgLength);
 
   if (brightnessTreshold > brightness) {
     if (maxPixelValue > pixelTreshold) {
@@ -40,12 +40,19 @@ export function process(
 }
 
 function setBrightnessAndMaxValue(
+  imgWidth: number,
+  imgHeight: number,
   imgArray: Uint8ClampedArray,
   imgLenght: number
 ) {
   let sum = 0;
   maxPixelValue = 0;
-  for (let i = 0; i < imgLenght; i += 4) {
+  // set up values for padding 30 px 
+  start = imgWidth * 30 + 120;
+  end = imgLenght - start;
+  lineGuard = 2 * start;
+  for (let i = start; i < end; i += 4) {
+    if (i < i + lineGuard) continue;
     let valueOfCurrentPixel = imgArray[i] + imgArray[i + 1] + imgArray[i + 2];
     sum += valueOfCurrentPixel;
 
@@ -54,7 +61,7 @@ function setBrightnessAndMaxValue(
       redIndex = i;
     }
   }
-  brightness = sum / (imgLenght * (3 / 4));
+  brightness = sum / (((imgWidth-240)*(imgHeight-240)) * (3 / 4));
 }
 
 function cropImage(imgToCut: ImageData, particleImg: ImageData): ImageData {

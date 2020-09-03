@@ -1,5 +1,3 @@
-
-
 function createWakeLocker() {
   let wakeLock;
   const request = async () => {
@@ -19,4 +17,4 @@ function createWakeLocker() {
   };
 }
 
-export const WakeLocker = createWakeLocker()
+export const WakeLocker = createWakeLocker();

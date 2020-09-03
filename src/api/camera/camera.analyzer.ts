@@ -13,7 +13,7 @@ export interface Config {
 const config: Config = {
   cropWidth: 60,
   cropHeight: 60,
-  brightnessTreshold: 1, // 0 - 255
+  brightnessTreshold: 2.55, // 0 - 255
   pixelTreshold: 210, // 0 - 765
 };
 

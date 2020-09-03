@@ -1,4 +1,4 @@
-import type { Detection } from "../credo-api/models";
+import type { Detection } from "../credo/models";
 
 const DETECTION_KEY = "detections";
 function createDetectionStorage() {

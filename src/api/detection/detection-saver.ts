@@ -1,11 +1,11 @@
 import { ImageConverter } from "./image-converter";
-import { requiredFields } from "../credo-api/models";
-import type { Detection, DetectionPostion } from "../credo-api/models";
+import { requiredFields } from "../credo/models";
+import { CredoRepsitory } from "../credo/credo-repository";
+import type { Detection, DetectionPostion } from "../credo/models";
 import { DetectionStorage } from "./detection-storage";
-import { CredoRepsitory } from "../credo-api/credo-repository";
-import { TokenStorage } from "../token/token-storage";
+import { TokenStorage } from "../../util/token/token-storage";
 
-function createDetecotSaver() {
+function createDetectionSaver() {
   function save(imageData: ImageData, postion: Position) {
     const base64 = ImageConverter.converImageDataToBase64(imageData);
     const detectionPostion = createDetectionPostion(postion);
@@ -16,9 +16,7 @@ function createDetecotSaver() {
     };
     DetectionStorage.save(detection);
     return CredoRepsitory.submitDetections(
-      { detections: [detection], ...requiredFields },
-      TokenStorage.get()
-    );
+      { detections: [detection], ...requiredFields });
   }
   return { save };
   function createDetectionPostion(position?: Position): DetectionPostion {
@@ -39,4 +37,4 @@ function createDetecotSaver() {
     };
   }
 }
-export const DetectionSaver = createDetecotSaver();
+export const DetectionSaver = createDetectionSaver();
