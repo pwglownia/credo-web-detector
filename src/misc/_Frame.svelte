@@ -1,32 +1,33 @@
 <style>
-  img {
-    z-index: -1;
-    height: 100%;
-    width: 100vw;
+
+  .wrapper {
     position: absolute;
+    width: 100%;
+    height: 100%;
+    min-height: -webkit-fill-available;
+    overflow-y: scroll;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
   }
 
-  .wrapper {
-    width: 100vw;
-    height: 100vh;
-    overflow-y: scroll;
-  }
-
   .frame {
-    padding: 20px;
+    padding: var(--sl-spacing-large);
     max-width: 520px;
     margin: 0 auto;
+  }
+
+  :global(body) {
+    background: url("/assets/bg.jpg") no-repeat;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
   }
 </style>
 
 <div class="wrapper">
-  <img alt="blur background" src="assets/bg.jpg" />
   <div class="frame">
     <slot />
-
   </div>
 </div>

@@ -4,6 +4,10 @@
 </script>
 
 <style>
+  sl-button {
+    margin: var(--sl-spacing-small);
+  }
+
   .card {
     border-radius: var(--sl-border-radius-large);
     padding: var(--sl-spacing-large);

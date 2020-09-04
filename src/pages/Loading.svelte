@@ -61,7 +61,7 @@
     text-align: center;
     height: 100%;
     width: 100%;
-    background: var(--sl-color-primary-5);
+    background: var(--sl-color-primary-15);
     color: var(--sl-color-white);
   }
 
@@ -93,7 +93,7 @@
   }
 </style>
 
-<div transition:fade={{ duration: 1500, easing: expoIn }}>
+<div out:fade={{ duration: 1000, easing: expoIn }}>
   <section>
     <header>
       <img src="" alt="" />

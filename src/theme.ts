@@ -1,11 +1,11 @@
 const setup = {
-  primaryHue: 215,
-  primarySaturation: 90, // %
+  primaryHue: 225,
+  primarySaturation: 50, // %
   infoHue: 150,
   infoSaturation: 50,
   fontFamily: "Lato, sans-serif",
   whiteSpace: 12, // px
-  borderRadius: 6, // px
+  borderRadius: 16, // px
 };
 
 const theme = {
@@ -29,7 +29,7 @@ const theme = {
   setMiscs() {
     let meta = document.createElement("meta");
     meta.name = "theme-color";
-    // meta.content = this.variables.backgroundDark; // TODO
+    meta.content = `hsl(${setup.primaryHue}, ${setup.primarySaturation}%, 15%)`; // TODO
     document.getElementsByTagName("head")[0].appendChild(meta);
   },
 };

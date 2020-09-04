@@ -12,7 +12,16 @@
   import Timer from "./_Timer.svelte";
   import { throttle } from "../../util/throttle";
   import { fade } from "svelte/transition";
-  import { newParticleCaught } from "../detector.store";
+  import {
+    framesAnalyzed,
+    newParticleCaught,
+    particlesCaught,
+    playSound,
+  } from "./detector.store";
+  import FramesAnalyzed from "./_FramesAnalyzed.svelte";
+  import ParticlesCaughtCounter from "./_ParticlesCaughtCounter.svelte";
+
+  var audio = new Audio("assets/poof.mp3");
 
   const analyzer = new CameraAnalyzer();
 
@@ -21,7 +30,7 @@
 
   let select: boolean = false;
   let isRunning = false;
-  let brightness = null;
+  let brightness = 100;
 
   $: detect(isRunning, $camera);
 
@@ -70,9 +79,15 @@
   };
 
   const analyzerCallBack = (data: DetectionAlgorithmResult) => {
-    throttle(updateBrightness, 1000, data.brightness);
+    framesAnalyzed.increment();
+
+    throttle(updateBrightness, 250, data.brightness);
 
     if (data.particleImg) {
+      if ($playSound) {
+        audio.play();
+      }
+      particlesCaught.increment();
       newParticleCaught.set(true);
       // ring ring
       DetectionSaver.save(data.particleImg, $geoposition.position);
@@ -89,10 +104,10 @@
   }
 
   function stop() {
-    brightness = null;
     isRunning = false;
     analyzer.stop();
     camera.closeStream();
+    brightness = 100;
   }
 </script>
 
@@ -113,34 +128,29 @@
     display: flex;
     background: var(--sl-color-white);
     border-radius: var(--sl-border-radius-large);
-    min-height: 15rem;
+    min-height: 13rem;
   }
 
   @media only screen and (max-width: 600px) {
     .card {
       flex-direction: column;
       border-radius: var(--sl-border-radius-large);
-      min-height: 20rem;
+      margin-bottom: 1rem;
     }
 
     .control {
-      height: 5rem;
-      border-top-right-radius: var(--sl-border-radius-large);
-      border-top-left-radius: var(--sl-border-radius-large);
-    }
-
-    .loading {
-      padding: var(--sl-spacing-large);
-    }
-
-    .settings {
-      top: calc(var(--sl-spacing-large) + 70px) !important;
+      position: fixed !important; /* bugfix */
+      height: 2rem !important;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: +100;
     }
   }
 
   @media only screen and (min-width: 601px) {
     .control {
-      min-width: 10rem;
+      min-width: 7rem;
       border-top-left-radius: var(--sl-border-radius-large);
       border-bottom-left-radius: var(--sl-border-radius-large);
     }
@@ -148,22 +158,22 @@
 
   .info {
     width: 100%;
-    display: flex;
-    align-items: center;
-    padding: var(--sl-spacing-x-large);
+    padding: var(--sl-spacing-large);
   }
 
   .control {
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    left: -1px;
     padding: var(--sl-spacing-x-large);
-    background: var(--sl-color-primary-5);
+    background: var(--sl-color-primary-15);
   }
 
   .settings {
     position: absolute;
-    top: var(--sl-spacing-large);
+    top: var(--sl-spacing-x-small);
     right: var(--sl-spacing-large);
     display: flex;
     justify-content: flex-end;
@@ -197,8 +207,7 @@
 
   .status-icon {
     position: relative;
-    font-size: 24px;
-    top: 3px;
+    top: 2px;
     margin-right: 5px;
   }
 </style>
@@ -282,9 +291,14 @@
     {/if}
 
     {#if !$camera.stream && isRunning}
-      <section class="loading" in:fade>
-        <sl-spinner class="starting-spinner" />
-        Starting detector...
+      <section in:fade>
+        <h1>
+          <sl-spinner class="starting-spinner" />
+          Loading...
+        </h1>
+        <hr />
+
+        <p>Detector is warming up</p>
       </section>
     {/if}
 
@@ -328,14 +342,19 @@
               Detecting...
             </h1>
             <hr />
-            <span class="indicator">
-              <Timer />
-            </span>
+            <p>Detector is analyzing frames from your camera device</p>
             <p>
               Press the
               <sl-icon class="text-icon" name="stop-fill" />
-              button to stop detector
+              button if you wish to stop
             </p>
+            <span in:fade={{ delay: 250 }} class="indicator">
+              <FramesAnalyzed />
+              <br />
+              <Timer />
+              <br />
+              <ParticlesCaughtCounter />
+            </span>
           </div>
         {/if}
       </section>

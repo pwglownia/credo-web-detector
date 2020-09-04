@@ -55,6 +55,7 @@ function createCameraStore() {
       }
 
       camera.stream = result;
+
       camera.id = getDeviceId();
       save();
       return;
@@ -76,9 +77,18 @@ function createCameraStore() {
   };
   return store;
 
-  function getVideoSettings(): boolean | MediaTrackConstraints {
-    if (camera.id) return { deviceId: camera.id };
-    return true;
+  function getVideoSettings(): MediaTrackConstraints {
+    const settings: MediaTrackConstraints = {
+      deviceId: null,
+      frameRate: 60,
+      width: 1920,
+      height: 1080,
+    };
+    if (camera.id) {
+      settings.deviceId = camera.id;
+    }
+
+    return settings;
   }
 
   async function tryGetStream(videoSettings: boolean | MediaTrackConstraints) {
@@ -107,5 +117,7 @@ function createCameraStore() {
     set({ ...camera, error: null });
     localStorage.setItem(CAMERA_KEY, camera.id);
   }
+
+
 }
 export const camera = createCameraStore();

@@ -36,6 +36,10 @@ export function process(
 
   if (brightnessTreshold > brightness) {
     if (maxPixelValue > pixelTreshold) {
+      // TODO for Credo api
+      // maxX = '',
+      // maxY = '',
+
       particleImg = cropImage(imageData, particleImg);
       return {
         brightness,

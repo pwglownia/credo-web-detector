@@ -5,7 +5,7 @@
 
   let hits: Detection[] = [];
 
-  const interval = setInterval(() => (hits = DetectionStorage.get()), 5000);
+  const interval = setInterval(() => (hits = DetectionStorage.get()), 1000);
   hits = DetectionStorage.get();
   onDestroy(() => clearInterval(interval));
 </script>
@@ -17,10 +17,6 @@
     font-size: 20px;
     color: var(--sl-color-primary-5);
     margin-right: 5px;
-  }
-
-  h1 {
-    font-size: 24px;
   }
 
   h2 {
@@ -81,7 +77,7 @@
   <div class="info-card">
     <h1>Your particles</h1>
     <hr />
-    <p>These are recent particles, you found using this detector device.</p>
+    <p>These are the last particles found with this detection device</p>
     <p>
       If you wish to get more information, go to your
       <a href="/">credo account</a>

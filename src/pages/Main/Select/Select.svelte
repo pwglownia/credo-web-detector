@@ -8,6 +8,7 @@
   import type { Camera } from "../../../api/camera/camera.store";
   import type { CameraError } from "../../../api/camera/camera-error";
   import { fade } from "svelte/transition";
+  import { playSound } from "../detector.store";
 
   const dispatch = createEventDispatcher();
 
@@ -75,11 +76,11 @@
   }
 
   .container {
-    padding: var(--sl-spacing-large);
+    padding: var(--sl-spacing-small) var(--sl-spacing-large);
   }
 
   video {
-    height: 200px;
+    height: 10rem;
     width: 100%;
     object-fit: contain;
     background: #000;
@@ -87,20 +88,16 @@
     border-top-left-radius: var(--sl-border-radius-medium);
   }
 
-  .controls {
-    padding: var(--sl-spacing-medium);
-  }
-
   .info > p {
     margin: 0;
   }
 
   sl-radio {
-    padding: var(--sl-spacing-small);
+    padding: var(--sl-spacing-x-small);
   }
 
   .buttons {
-    width: 100%;
+    display: flex;
     justify-content: flex-end;
     box-sizing: border-box;
   }
@@ -141,10 +138,10 @@
 
       <div class="container">
         <div class="info">
-          <h1>Select Camera</h1>
-          <hr />
-          <p>Select the camera that will be used for detection</p>
+          <p>Select the camera that will be used for detections</p>
         </div>
+
+        <hr />
 
         <div class="controls">
           {#each cameras as { id, name }}
@@ -157,6 +154,16 @@
             </sl-radio>
           {/each}
         </div>
+
+        <hr />
+        <p>
+          <sl-switch
+            checked={$playSound}
+            on:slChange={() => playSound.toggle()} />
+          Play sound on detection
+        </p>
+
+        <hr />
         <div class="buttons">
           <sl-button type="primary" on:click={() => close()}>Accept</sl-button>
         </div>

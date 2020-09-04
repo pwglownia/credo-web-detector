@@ -1,13 +1,10 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
 
-  let time = 3600;
+  let time = 0;
   let output = "0s";
 
   const interval = setInterval(() => update(), 1000);
-
-  let min;
-  let hrs;
 
   const update = () => {
     time++;

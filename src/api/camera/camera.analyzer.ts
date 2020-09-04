@@ -2,6 +2,7 @@ import {
   DetectionAlgorithmResult as DetectionResult,
   process,
 } from "./detection.algorithm";
+import { setTrackConstraints } from "./camera-constraints";
 
 export interface Config {
   cropWidth: number;
@@ -33,6 +34,7 @@ export class CameraAnalyzer {
     videoTrack: MediaStreamTrack
   ) {
     this.imageCapture = new ImageCapture(videoTrack);
+    setTrackConstraints(videoTrack);
     this.isRunning = true;
     this.callBack = callBack;
     this.grabFrames();

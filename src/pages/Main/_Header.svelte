@@ -17,7 +17,7 @@
     background: var(--sl-color-white);
     border-top-left-radius: var(--sl-border-radius-large);
     border-top-right-radius: var(--sl-border-radius-large);
-    background: var(--sl-color-primary-5);
+    background: var(--sl-color-primary-15);
     color: var(--sl-color-white);
   }
 
@@ -37,7 +37,7 @@
           src="assets/credo-logo-grey.png"
           alt="credo.science logo" />
       </a>
-      <h1>Web Detector</h1>
+      <h1>web detector</h1>
     </span>
     <sl-tooltip placement="left" content="Logout / Exit">
       <sl-icon-button

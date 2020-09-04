@@ -5,7 +5,7 @@
   import FAQ from "./_FAQ.svelte";
   import { fade } from "svelte/transition";
   import { onMount } from "svelte";
-  import { newParticleCaught } from "../detector.store";
+  import { newParticleCaught } from "./detector.store";
 
   let tabGroup;
 </script>
@@ -45,7 +45,6 @@
 <div in:fade>
 
   <Header />
-
   <div class="card">
     <sl-tab-group
       bind:this={tabGroup}
